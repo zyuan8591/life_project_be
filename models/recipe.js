@@ -1,39 +1,74 @@
 const pool = require('../utils/db');
 
-async function getAllRecipeCount() {
-  let [total] = await pool.execute('SELECT COUNT(*) AS total FROM recipe WHERE valid = 1');
-  console.log(total);
-  return total;
+async function getRecipeCount(user, name = '', recipeId) {
+  // Search
+  let userSearch = user ? `AND recipe.user_id = ${user}` : '';
+  let total = null;
+  if (recipeId.length !== 0) {
+    total = await pool.query(
+      `SELECT COUNT(*) AS total FROM recipe 
+      WHERE valid = 1 ${userSearch} AND recipe.name LIKE ? AND recipe.id IN (?)`,
+      [`%${name}%`, recipeId]
+    );
+  } else {
+    total = await pool.query(
+      `SELECT COUNT(*) AS total FROM recipe 
+      WHERE valid = 1 ${userSearch} AND recipe.name LIKE ?`,
+      [`%${name}%`]
+    );
+  }
+  return total[0][0].total;
 }
-async function getRecipeList(sort, user, name, perPage, offset) {
+
+async function getRecipeList(sort, user, name, perPage, offset, recipeId) {
   // Sort
   let sortSql = null;
   switch (sort) {
     case '1':
-      sortSql = 'ORDER BY id ASC';
+      sortSql = 'ORDER BY create_time ASC';
       break;
     case '2':
-      sortSql = 'ORDER BY id DESC';
+      sortSql = 'ORDER BY create_time DESC';
       break;
     default:
       sortSql = '';
       break;
   }
-
   // Search
   let userSearch = user ? `AND recipe.user_id = ${user}` : '';
 
-  let [data] = await pool.query(
-    `SELECT recipe.*, recipe_category.name AS recipe_category_name, product_category.name AS product_category_name FROM recipe 
-    JOIN recipe_category ON recipe.category = recipe_category.id 
-    JOIN product_category ON recipe.product_category = product_category.id
-    WHERE valid = 1 ${userSearch} AND recipe.name LIKE ? ${sortSql} LIMIT ? OFFSET ?`,
-    [`%${name}%`, perPage, offset]
-  );
+  let data = null;
+  if (recipeId.length !== 0) {
+    data = await pool.query(
+      `SELECT recipe.*, recipe_category.name AS recipe_category_name, product_category.name AS product_category_name, COUNT(DISTINCT recipe_comment.id) AS comments, COUNT(DISTINCT recipe_like.id) AS likes 
+      FROM recipe 
+      JOIN recipe_category ON recipe.category = recipe_category.id 
+      JOIN product_category ON recipe.product_category = product_category.id
+      LEFT JOIN recipe_comment ON recipe.id = recipe_comment.recipe_id
+      LEFT JOIN recipe_like ON recipe.id = recipe_like.recipe_id
+      WHERE recipe.valid = 1 ${userSearch} AND recipe.name LIKE ? AND recipe.id IN (?)
+      ${sortSql} 
+      GROUP BY recipe.id
+      LIMIT ? OFFSET ?`,
+      [`%${name}%`, recipeId, perPage, offset]
+    );
+  } else {
+    data = await pool.query(
+      `SELECT recipe.*, recipe_category.name AS recipe_category_name, product_category.name AS product_category_name, COUNT(DISTINCT recipe_comment.id) AS comments, COUNT(DISTINCT recipe_like.id) AS likes 
+      FROM recipe 
+      JOIN recipe_category ON recipe.category = recipe_category.id 
+      JOIN product_category ON recipe.product_category = product_category.id
+      LEFT JOIN recipe_comment ON recipe.id = recipe_comment.recipe_id
+      LEFT JOIN recipe_like ON recipe.id = recipe_like.recipe_id
+      WHERE recipe.valid = 1 ${userSearch} AND recipe.name LIKE ?
+      ${sortSql} 
+      GROUP BY recipe.id
+      LIMIT ? OFFSET ?`,
+      [`%${name}%`, perPage, offset]
+    );
+  }
 
-  // console.log(data);
-
-  return data;
+  return data[0];
 }
 
 async function getRecipeById(id) {
@@ -46,6 +81,12 @@ async function getMaterialById(id) {
   return data;
 }
 
+async function getMaterialByName(name = '') {
+  let [data] = await pool.execute('SELECT * FROM recipe_material WHERE name LIKE ?', [`%${name}%`]);
+  data = data.map((d) => d.recipe_id);
+  return data;
+}
+
 async function getStepById(id) {
   let [data] = await pool.query('SELECT * FROM recipe_step WHERE recipe_id = ?', [id]);
   return data;
@@ -53,8 +94,23 @@ async function getStepById(id) {
 
 async function getRecipeCateList() {
   let [data] = await pool.execute('SELECT * FROM recipe_category');
-  console.log(data);
   return data;
 }
 
-module.exports = { getAllRecipeCount, getRecipeList, getRecipeById, getMaterialById, getStepById, getRecipeCateList };
+async function getRecipeCommentById(id) {
+  let [data] = await pool.execute('SELECT * FROM recipe_comment WHERE recipe_id = ?', [id]);
+  return data;
+}
+
+// async function
+
+module.exports = {
+  getRecipeCount,
+  getRecipeList,
+  getRecipeById,
+  getMaterialById,
+  getMaterialByName,
+  getStepById,
+  getRecipeCateList,
+  getRecipeCommentById,
+};

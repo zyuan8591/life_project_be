@@ -1,21 +1,22 @@
 const recipeModel = require('../models/recipe');
 
 async function getRecipeList(req, res) {
-  let { sort, user, name = '', page, perPage } = req.query;
+  let { sort, user, name = '', page, perPage, materialName = '' } = req.query;
 
-  // TODO: search material
+  // get recipe_id by material name [ 5, 9, 13 ]
+  let searchMaterial = [];
+  if (materialName) {
+    searchMaterial = await recipeModel.getMaterialByName(materialName);
+  }
 
   // pagination
   page = page ? parseInt(page) : 1;
   perPage = perPage ? parseInt(perPage) : 5;
-  let total = await recipeModel.getAllRecipeCount();
-  total = total[0].total;
+  let total = await recipeModel.getRecipeCount(user, name, searchMaterial);
   let lastPage = Math.ceil(total / perPage);
   let offset = perPage * (page - 1);
 
-  // TODO: product_category
-  // TODO: recipe_category
-  let data = await recipeModel.getRecipeList(sort, user, name, perPage, offset);
+  let data = await recipeModel.getRecipeList(sort, user, name, perPage, offset, searchMaterial);
 
   res.json({
     pagination: {
@@ -48,9 +49,21 @@ async function getStepById(req, res) {
 }
 
 async function getRecipeCate(req, res) {
-  console.log('hi');
   let data = await recipeModel.getRecipeCateList();
   res.json(data);
 }
 
-module.exports = { getRecipeList, getRecipeDetail, getMaterialById, getStepById, getRecipeCate };
+async function getRecipeComment(req, res) {
+  let id = req.params.id;
+  let data = await recipeModel.getRecipeCommentById(id);
+  res.json(data);
+}
+
+module.exports = {
+  getRecipeList,
+  getRecipeDetail,
+  getMaterialById,
+  getStepById,
+  getRecipeCate,
+  getRecipeComment,
+};

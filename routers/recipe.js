@@ -18,4 +18,7 @@ router.get('/:id/material', recipeController.getMaterialById);
 // GET step /api/1.0/recipes/5/step
 router.get('/:id/step', recipeController.getStepById);
 
+// GET comment /api/1.0/recipes/5/comments
+router.get('/:id/comment', recipeController.getRecipeComment);
+
 module.exports = router;
