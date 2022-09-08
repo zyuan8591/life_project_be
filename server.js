@@ -46,4 +46,4 @@ app.use('/api/1.0/', login);
 app.use('/api/1.0/user', user);
 
 // server running
-app.listen(port, () => console.log('server is runing'));
+app.listen(port, () => console.log('server is runing : ' + port));
