@@ -34,6 +34,7 @@ async function getRecipeList(sort, user, name, perPage, offset, recipeId) {
       sortSql = '';
       break;
   }
+  console.log(sort);
   // Search
   let userSearch = user ? `AND recipe.user_id = ${user}` : '';
 
@@ -47,8 +48,8 @@ async function getRecipeList(sort, user, name, perPage, offset, recipeId) {
       LEFT JOIN recipe_comment ON recipe.id = recipe_comment.recipe_id
       LEFT JOIN recipe_like ON recipe.id = recipe_like.recipe_id
       WHERE recipe.valid = 1 ${userSearch} AND recipe.name LIKE ? AND recipe.id IN (?)
-      ${sortSql} 
       GROUP BY recipe.id
+      ${sortSql} 
       LIMIT ? OFFSET ?`,
       [`%${name}%`, recipeId, perPage, offset]
     );
@@ -61,8 +62,8 @@ async function getRecipeList(sort, user, name, perPage, offset, recipeId) {
       LEFT JOIN recipe_comment ON recipe.id = recipe_comment.recipe_id
       LEFT JOIN recipe_like ON recipe.id = recipe_like.recipe_id
       WHERE recipe.valid = 1 ${userSearch} AND recipe.name LIKE ?
-      ${sortSql} 
       GROUP BY recipe.id
+      ${sortSql} 
       LIMIT ? OFFSET ?`,
       [`%${name}%`, perPage, offset]
     );
@@ -72,7 +73,7 @@ async function getRecipeList(sort, user, name, perPage, offset, recipeId) {
 }
 
 async function getRecipeById(id) {
-  let [data] = await pool.query('SELECT * FROM recipe WHERE id = ?', [id]);
+  let [data] = await pool.query('SELECT * FROM recipe WHERE id in ?', [id]);
   return data;
 }
 
