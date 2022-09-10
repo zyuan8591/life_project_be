@@ -34,7 +34,7 @@ router.post('/', reqistetRules, async (req, res) => {
   const now = new Date();
   let creatTime = date.format(now, 'YYYY/MM/DD');
   //寫進資料庫
-  await pool.execute('INSERT INTO users (name,email,password,phone,create_time) VALUES(?,?,?,?,?)', [req.body.name, req.body.email, hashPassword, req.body.phone, creatTime]);
+  await pool.execute('INSERT INTO users (name,email,password,create_time) VALUES(?,?,?,?)', [req.body.name, req.body.email, hashPassword, creatTime]);
   //回應前端
   res.json({ message: '註冊成功' });
 });
