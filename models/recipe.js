@@ -1,26 +1,32 @@
 const pool = require('../utils/db');
 
-async function getRecipeCount(user, name = '', recipeId) {
+async function getRecipeCount(user, name = '', recipeId, recipeCate, productCate) {
   // Search
   let userSearch = user ? `AND recipe.user_id = ${user}` : '';
+  // filter for category
+  let recipeCateSql = '';
+  recipeCate ? (recipeCateSql = `AND recipe.category = ${recipeCate}`) : '';
+  let productCateSql = '';
+  productCate ? (productCateSql = `AND recipe.product_category = ${productCate}`) : '';
+
   let total = null;
   if (recipeId.length !== 0) {
     total = await pool.query(
       `SELECT COUNT(*) AS total FROM recipe 
-      WHERE valid = 1 ${userSearch} AND recipe.name LIKE ? AND recipe.id IN (?)`,
+      WHERE valid = 1 ${userSearch} ${recipeCateSql} ${productCateSql} AND recipe.name LIKE ? AND recipe.id IN (?)`,
       [`%${name}%`, recipeId]
     );
   } else {
     total = await pool.query(
       `SELECT COUNT(*) AS total FROM recipe 
-      WHERE valid = 1 ${userSearch} AND recipe.name LIKE ?`,
+      WHERE valid = 1 ${userSearch} ${recipeCateSql} ${productCateSql} AND recipe.name LIKE ?`,
       [`%${name}%`]
     );
   }
   return total[0][0].total;
 }
 
-async function getRecipeList(sort, user, name, perPage, offset, recipeId) {
+async function getRecipeList(sort, user, name, perPage, offset, recipeId, recipeCate, productCate) {
   // Sort
   let sortSql = null;
   switch (sort) {
@@ -30,13 +36,22 @@ async function getRecipeList(sort, user, name, perPage, offset, recipeId) {
     case '2':
       sortSql = 'ORDER BY create_time DESC';
       break;
+    case '3':
+      sortSql = 'ORDER BY likes DESC';
+      break;
     default:
       sortSql = '';
       break;
   }
-  console.log(sort);
   // Search
   let userSearch = user ? `AND recipe.user_id = ${user}` : '';
+  console.log(userSearch);
+
+  // filter for category
+  let recipeCateSql = '';
+  recipeCate ? (recipeCateSql = `AND recipe.category = ${recipeCate}`) : '';
+  let productCateSql = '';
+  productCate ? (productCateSql = `AND recipe.product_category = ${productCate}`) : '';
 
   let data = null;
   if (recipeId.length !== 0) {
@@ -47,7 +62,7 @@ async function getRecipeList(sort, user, name, perPage, offset, recipeId) {
       JOIN product_category ON recipe.product_category = product_category.id
       LEFT JOIN recipe_comment ON recipe.id = recipe_comment.recipe_id
       LEFT JOIN recipe_like ON recipe.id = recipe_like.recipe_id
-      WHERE recipe.valid = 1 ${userSearch} AND recipe.name LIKE ? AND recipe.id IN (?)
+      WHERE recipe.valid = 1 ${userSearch} ${recipeCateSql} ${productCateSql} AND recipe.name LIKE ? AND recipe.id IN (?)
       GROUP BY recipe.id
       ${sortSql} 
       LIMIT ? OFFSET ?`,
@@ -61,13 +76,15 @@ async function getRecipeList(sort, user, name, perPage, offset, recipeId) {
       JOIN product_category ON recipe.product_category = product_category.id
       LEFT JOIN recipe_comment ON recipe.id = recipe_comment.recipe_id
       LEFT JOIN recipe_like ON recipe.id = recipe_like.recipe_id
-      WHERE recipe.valid = 1 ${userSearch} AND recipe.name LIKE ?
+      WHERE recipe.valid = 1 ${userSearch} ${recipeCateSql} ${productCateSql} AND recipe.name LIKE ?
       GROUP BY recipe.id
       ${sortSql} 
       LIMIT ? OFFSET ?`,
       [`%${name}%`, perPage, offset]
     );
   }
+
+  console.log(data);
 
   return data[0];
 }
@@ -103,6 +120,11 @@ async function getRecipeCommentById(id) {
   return data;
 }
 
+async function getMaterialList() {
+  let [data] = await pool.execute('SELECT DISTINCT name FROM recipe_material');
+  return data;
+}
+
 // async function
 
 module.exports = {
@@ -114,4 +136,5 @@ module.exports = {
   getStepById,
   getRecipeCateList,
   getRecipeCommentById,
+  getMaterialList,
 };
