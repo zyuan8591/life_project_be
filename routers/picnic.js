@@ -1,59 +1,54 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../utils/db');
-
+const picnicController = require('../controllers/picnic');
 // --------------- 官方頁 ---------------
 // 列表首頁
-router.get('/official', async (req, res) => {
+router.get('/official', picnicController.getPicnicList);
+
+// 列表詳細頁
+router.get('/official/:officialId', async (req, res) => {
+  const officialId = req.params.officialId;
+  let [data] = await pool.execute('SELECT * FROM activity_pincnic_official WHERE id=?', [officialId]);
+  res.json(data);
+});
+
+// --------------- 私人開團活動頁 ---------------
+router.get('/group', async (req, res) => {
   const searchWord = req.query.searchWord ? req.query.searchWord : '';
-  //   const filterState = req.query.filterState ? req.query.filterState : '';
-  //   const priceRange = req.query.priceRange ? req.query.priceRange : '';
-  let activitySort = req.query.activitySort ? req.query.activitySort : '1';
+  let activitySort = req.query.activitySort ? req.query.activitySort : '0';
 
   let sortSql;
   switch (activitySort) {
     case '0':
-      sortSql = 'activity_pincnic_official.activity_date DESC';
+      sortSql = 'activity_picnic_private.start_date DESC';
       break;
     case '1':
-      sortSql = 'activity_pincnic_official.activity_date ASC';
-      break;
-    case '2':
-      sortSql = 'activity_pincnic_official.price ASC';
-      break;
-    case '3':
-      sortSql = 'activity_pincnic_official.price DESC';
+      sortSql = 'activity_picnic_private.start_date ASC';
       break;
     default:
   }
-  //console.log('sortSql', sortSql);
-  //console.log('activitySort', req.query.activitySort);
+
   let [totalData] = await pool.execute(
-    `SELECT activity_pincnic_official.* , activity_picnic_state.activity_state , activity_picnic_location.location FROM activity_pincnic_official JOIN activity_picnic_state ON activity_pincnic_official.activity_state = activity_picnic_state.id JOIN activity_picnic_location ON activity_pincnic_official.location = activity_picnic_location.id WHERE activity_pincnic_official.picnic_title LIKE ?`,
+    `SELECT activity_picnic_private.* , activity_picnic_state.activity_state , activity_picnic_location.location FROM activity_picnic_private JOIN activity_picnic_state ON activity_picnic_private.activity_state = activity_picnic_state.id JOIN activity_picnic_location ON activity_picnic_private.location = activity_picnic_location.id WHERE activity_picnic_private.picnic_title LIKE ?`,
     [`%${searchWord}%`]
   );
-  //   console.log(totalData);
+
   const page = req.query.page ? req.query.page : 1;
   const perPage = 12;
   const total = totalData.length;
   let lastPage = Math.ceil(total / perPage);
   const offset = perPage * (page - 1);
 
-  // let userSearch = user ? `AND recipe.user_id = ${user}` : '';
-  // 自訂變數名 = 搜尋列 前端req.query的 ? `AND 欄位 = : ;`
-  //  let filterBtn = filterState ? `AND activity_pincnic_official.activity_state = ${filterState}` : '';
-  //   let filterPrice = priceRange ? `activity_pincnic_official.price = ${priceRange}` : '';
   let [data] = await pool.execute(
-    `SELECT activity_pincnic_official.* , activity_picnic_state.activity_state , activity_picnic_location.location FROM activity_pincnic_official JOIN activity_picnic_state ON activity_pincnic_official.activity_state = activity_picnic_state.id JOIN activity_picnic_location ON activity_pincnic_official.location = activity_picnic_location.id WHERE activity_pincnic_official.picnic_title LIKE ? ORDER BY ${sortSql} LIMIT ? OFFSET ?`,
+    `SELECT activity_picnic_private.* , activity_picnic_state.activity_state , activity_picnic_location.location FROM activity_picnic_private JOIN activity_picnic_state ON activity_picnic_private.activity_state = activity_picnic_state.id JOIN activity_picnic_location ON activity_picnic_private.location = activity_picnic_location.id WHERE activity_picnic_private.picnic_title LIKE ? ORDER BY ${sortSql} LIMIT ? OFFSET ?`,
     [`%${searchWord}%`, perPage, offset]
   );
-  //   console.log('sortSql', sortSql);
-  for (let i = 0; i < data.length; i++) {
-    // console.log('data', data[i].id);
-    let [officialJoin] = await pool.execute(`SELECT * FROM activity_picnic_official_join WHERE picnic_id = ${data[i].id}`);
-    data[i] = { ...data[i], officialJoin: officialJoin.length };
-  }
 
+  for (let i = 0; i < data.length; i++) {
+    let [privateJoin] = await pool.execute(`SELECT * FROM activity_picnic_private_join WHERE picnic_id = ${data[i].id}`);
+    data[i] = { ...data[i], privateJoin: privateJoin.length };
+  }
   res.json({
     pagination: {
       total,
@@ -64,13 +59,45 @@ router.get('/official', async (req, res) => {
     data,
   });
 });
-// 列表詳細頁
-router.get('/official/:officialId', async (req, res) => {
-  const officialId = req.params.officialId;
-  let [data] = await pool.execute('SELECT * FROM activity_pincnic_official WHERE id=?', [officialId]);
-  res.json(data);
-});
 
-// --------------- 私人頁 ---------------
+// --------------- 私人開團表單 ---------------
+// const path = require;
+// const multer = require('multer');
+// const storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, path.join(__dirname, '..', 'public', 'uploads'));
+//   },
+//   filename: function (req, file, cb) {
+//     const ext = file.originalname.split('.').pop();
+//     cb(null, `activity-${Date.now()}.${ext}`);
+//   },
+// });
+// const uploader = multer({
+//   storage: storage,
+//   fileFilter: function (req, file, cb) {
+//     // console.log('file', file);
+//     if (file.mimetype !== 'image/jpeg' && file.mimetype !== 'image/jpg' && file.mimetype !== 'image/png' && file.mimetype !== 'image/webp') {
+//       cb(new Error('上傳的檔案型態不接受'), false);
+//     } else {
+//       cb(null, true);
+//     }
+//   },
+//   limits: {
+//     fileSize: 200 * 1024,
+//   },
+// });
 
+// router.post('/create', uploader.single('image'), async (req, res) => {
+//   //   console.log(req.body);
+//   // TODO: 無法撈出地區資料
+//   // let [locationData] = await pool.execute('SELECT * FROM activity_picnic_location WHERE location');
+//   // console.log(locationData);
+
+//   let result = await pool.execute(
+//     'INSERT INTO activity_picnic_private (address, activity_date, join_limit, picnic_title, intr, start_date, end_date, img1) VALUES (?,?,?,?,?,?,?,?);',
+//     [req.body.address, req.body.activityDate, req.body.joinLimit, req.body.title, req.body.intr, req.body.startDate, req.body.endDate, req.body.image]
+//   );
+//   res.json({ Message: 'OK' });
+//   console.log('INSERT', result);
+// });
 module.exports = router;
