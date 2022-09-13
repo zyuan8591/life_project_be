@@ -1,6 +1,6 @@
 const pool = require('../utils/db');
 const moment = require('moment');
-
+const campingModel = require('../models/camping');
 // campingData
 // /api/1.0/camping?state=1 & maxPrice=100 & minPrice=50 & maxPerson=20 & minPerson=10 & maxDate=20221010 & minPrice=20220910 & order=1 & search & page
 async function getCampingList(req, res) {
@@ -50,7 +50,7 @@ async function getCampingList(req, res) {
 
   // join location & join pepcount
   let [totalResult] = await pool.execute(
-    `select c.*,l.location,IFNULL(j.pep, 0) as pepcount FROM activity_camping c INNER JOIN activity_camping_location l ON l.id = c.location LEFT JOIN (SELECT count(1) AS pep,activity_id FROM activity_camping_join GROUP BY activity_id) j ON c.id = j.activity_id WHERE valid = 1 ${priceCount} ${startDateTime} ${endDateTime} ${titleSearch} ${joinCount} ORDER BY ${orderType} `
+    `SELECT c.*,l.location,IFNULL(j.pep, 0) as pepcount FROM activity_camping c INNER JOIN activity_camping_location l ON l.id = c.location LEFT JOIN (SELECT count(1) AS pep,activity_id FROM activity_camping_join GROUP BY activity_id) j ON c.id = j.activity_id WHERE valid = 1 ${priceCount} ${startDateTime} ${endDateTime} ${titleSearch} ${joinCount} ORDER BY ${orderType} `
   );
   totalResult = totalResult.map((d) => {
     let todayDate = Number(moment().format('YYYYMMDD'));
@@ -97,7 +97,7 @@ async function getCampingDetail(req, res) {
 
   // 未分頁
   let [result] = await pool.execute(
-    `select c.*,IFNULL(j.pep, 0) AS pepcount FROM activity_camping c INNER JOIN activity_camping_location l ON l.id = c.location LEFT JOIN (SELECT count(1) AS pep,activity_id FROM activity_camping_join GROUP BY activity_id) j ON c.id = j.activity_id WHERE c.id=?`,
+    `SELECT c.*,IFNULL(j.pep, 0) AS pepcount FROM activity_camping c INNER JOIN activity_camping_location l ON l.id = c.location LEFT JOIN (SELECT count(1) AS pep,activity_id FROM activity_camping_join GROUP BY activity_id) j ON c.id = j.activity_id WHERE c.id=?`,
     [campingId]
   );
 
@@ -116,11 +116,59 @@ async function getCampingDetail(req, res) {
 
   let [joinResult] = await pool.execute(`SELECT j.*, users.* FROM activity_camping_join j JOIN users ON j.user_id = users.id WHERE j.activity_id=?`, [campingId]);
 
-  // console.log(joinResult);
+  // console.log(result);
   res.json({ result, joinResult });
+}
+
+// /api/1.0/camping/campingCollect/1  add
+async function postCampingCollect(req, res) {
+  let camping = await campingModel.getCampingById(req.params.campingId);
+  if (!camping) {
+    return res.json({ message: '查無此活動' });
+  }
+  await campingModel.addCollectCamping(req.session.user.id, req.params.campingId);
+  let getCamping = await campingModel.getCollectCamping(req.session.user.id);
+  res.json({ message: 'ok', getCamping });
+}
+
+// delete
+async function postDeleteCollect(req, res) {
+  await campingModel.deleteCollectCamping(req.session.user.id, req.params.campingId);
+  let getCamping = await campingModel.getCollectCamping(req.session.user.id);
+  res.json({ message: 'ok', getCamping });
+}
+
+// /api/1.0/camping/campingCollected
+// async function getCampingCollect(req, res) {
+//   let getCamping = await campingModel.getCollectCamping(req.session.user.id);
+//   // console.log(getCamping);
+//   res.json(getCamping);
+// }
+
+// add join
+async function postCampingJoin(req, res) {
+  let camping = await campingModel.getJoinById(req.params.campingId);
+  if (!camping) {
+    return res.json({ message: '查無此活動' });
+  }
+  await campingModel.addJoinCamping(req.session.user.id, req.params.campingId);
+  let getJoin = await campingModel.getJoinCamping(req.session.user.id);
+  res.json({ message: 'ok', getJoin });
+}
+
+// add delete
+async function postDeleteJoin(req, res) {
+  await campingModel.deleteJoinCamping(req.session.user.id, req.params.campingId);
+  let getJoin = await campingModel.getJoinCamping(req.session.user.id);
+  res.json({ message: 'ok', getJoin });
 }
 
 module.exports = {
   getCampingList,
   getCampingDetail,
+  postCampingCollect,
+  postDeleteCollect,
+  // getCampingCollect,
+  postCampingJoin,
+  postDeleteJoin,
 };
