@@ -1,15 +1,15 @@
 const pool = require('../utils/db');
 
 async function getPicnicList(req, res) {
-  console.log(req.query);
+  //   console.log(req.query);
   const searchWord = req.query.searchWord ? req.query.searchWord : '';
   const filterState = req.query.filterState ? req.query.filterState : '';
   const minPrice = req.query.minPrice ? req.query.minPrice : 0;
   const maxPrice = req.query.maxPrice ? req.query.maxPrice : 2500;
   const minJoinPeople = req.query.minJoinPeople ? req.query.minJoinPeople : 0;
   const maxJoinPeople = req.query.maxJoinPeople ? req.query.maxJoinPeople : 30;
-  // const minDate = req.query.minDate ? req.query.minDate : '';
-  // const maxDate = req.query.maxDate ? req.query.maxDate : '';
+  const minDate = req.query.minDate ? req.query.minDate : '';
+  const maxDate = req.query.maxDate ? req.query.maxDate : '';
   let activitySort = req.query.activitySort ? req.query.activitySort : '0';
 
   let sortSql;
@@ -45,13 +45,13 @@ async function getPicnicList(req, res) {
   let filterBtn = filterState ? `AND activity_picnic_state.id = ${filterState}` : '';
   let filterPrice = minPrice || maxPrice ? `AND (price BETWEEN ${minPrice} AND ${maxPrice})` : '';
   let filterJoinPeople = minJoinPeople || maxJoinPeople ? `AND (join_limit BETWEEN ${minJoinPeople} AND ${maxJoinPeople})` : '';
-  // let filterStartDate = maxDate || minDate ? `AND (start_date BETWEEN '${minDate}' AND '${maxDate}')` : '';
-  // let filterEndDate = maxDate || minDate ? `AND (end_date BETWEEN '${minDate}' AND '${maxDate}')` : '';
+  let filterDate = maxDate || minDate ? `AND (start_date >= '${minDate}' AND end_date <= '${maxDate}')` : '';
+  //   console.log(filterDate);
+
   let [data] = await pool.execute(
-    `SELECT activity_pincnic_official.* , activity_picnic_state.activity_state , activity_picnic_location.location FROM activity_pincnic_official JOIN activity_picnic_state ON activity_pincnic_official.activity_state = activity_picnic_state.id JOIN activity_picnic_location ON activity_pincnic_official.location = activity_picnic_location.id WHERE valid = 1 ${filterBtn} ${filterPrice} ${filterJoinPeople} AND activity_pincnic_official.picnic_title LIKE ? ORDER BY ${sortSql} LIMIT ? OFFSET ?`,
+    `SELECT activity_pincnic_official.* , activity_picnic_state.activity_state , activity_picnic_location.location FROM activity_pincnic_official JOIN activity_picnic_state ON activity_pincnic_official.activity_state = activity_picnic_state.id JOIN activity_picnic_location ON activity_pincnic_official.location = activity_picnic_location.id WHERE valid = 1 ${filterBtn} ${filterPrice} ${filterJoinPeople} ${filterDate} AND activity_pincnic_official.picnic_title LIKE ? ORDER BY ${sortSql} LIMIT ? OFFSET ?`,
     [`%${searchWord}%`, perPage, offset]
   );
-  console.log(data);
 
   // 報名總人數
   for (let i = 0; i < data.length; i++) {
