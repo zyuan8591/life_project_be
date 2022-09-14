@@ -4,6 +4,8 @@ const app = express();
 const cors = require('cors');
 const port = process.env.SERVER_PORT || 3001;
 const path = require('path');
+const moment = require('moment');
+
 // 啟用session
 const expressSession = require('express-session');
 // 把 session 存在硬碟中
@@ -27,8 +29,12 @@ const recipe = require('./routers/recipe');
 const news = require('./routers/news');
 const signup = require('./routers/signup');
 const picnic = require('./routers/picnic');
+const camping = require('./routers/camping');
+const map = require('./routers/map');
 const login = require('./routers/login');
 const user = require('./routers/user');
+const product = require('./routers/product');
+const userUpdata = require('./routers/userUpdata');
 
 const corsOptions = {
   // 如果要讓 cookie 可以跨網域存取，這邊要設定 credentials
@@ -38,14 +44,23 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 app.use(express.json());
-
+app.use((req, res, next) => {
+  console.log(`Now：${moment().format('YYYY-MM-DD h:mm:ss')}`);
+  next();
+});
+//設置靜態檔案
+app.use(express.static(path.join(__dirname, 'public')));
 // middleware
 app.use('/api/1.0/recipes', recipe);
 app.use('/api/1.0/news', news);
 app.use('/api/1.0/signup', signup);
 app.use('/api/1.0/picnic', picnic);
+app.use('/api/1.0/camping', camping);
+app.use('/api/1.0/map', map);
 app.use('/api/1.0/', login);
 app.use('/api/1.0/user', user);
+app.use('/api/1.0/userUpdata', userUpdata);
+app.use('/api/1.0/products', product);
 
 // server running
 app.listen(port, () => console.log('server is runing : ' + port));

@@ -24,7 +24,7 @@ router.post('/login', async (req, res, next) => {
   };
   req.session.user = saveUser;
 
-  res.json(saveUser);
+  res.json(user);
 });
 
 // logout

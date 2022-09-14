@@ -2,8 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../utils/db');
 
-router.get('/', async (req, res, next) => {
-  //撈資料庫，把資料給前端
+router.get('/', async (req, res) => {
   if (!req.session.user) {
     //尚未登入
     return res.status(403).json({ msg: '尚未登入' });
