@@ -9,6 +9,9 @@ router.get('/', recipeController.getRecipeList);
 // GET /api/1.0/recipes/category
 router.get('/category', recipeController.getRecipeCate);
 
+// GET /api/1.0/recipes/material
+router.get('/material', recipeController.getMaterialList);
+
 // GET detail /api/1.0/recipes/5
 router.get('/:id', recipeController.getRecipeDetail);
 
