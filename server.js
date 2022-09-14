@@ -28,6 +28,7 @@ app.use(
 const recipe = require('./routers/recipe');
 const news = require('./routers/news');
 const signup = require('./routers/signup');
+const picnic = require('./routers/picnic');
 const camping = require('./routers/camping');
 const map = require('./routers/map');
 const login = require('./routers/login');
@@ -52,6 +53,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/api/1.0/recipes', recipe);
 app.use('/api/1.0/news', news);
 app.use('/api/1.0/signup', signup);
+app.use('/api/1.0/picnic', picnic);
 app.use('/api/1.0/camping', camping);
 app.use('/api/1.0/map', map);
 app.use('/api/1.0/', login);
