@@ -90,8 +90,10 @@ async function postRecipeComment(req, res) {
 }
 
 async function postRecipeLike(req, res) {
-  let id = req.params.id;
+  let id = parseInt(req.params.id);
   let { user_id } = req.body;
+  let likeList = await recipeModel.getRecipeLikeByUser(user_id);
+  if (likeList.includes(id)) return res.json({ message: '此食譜已收藏' });
   recipeModel.postLikeById(user_id, id);
   res.json({ message: 'ok' });
 }
