@@ -1,14 +1,14 @@
 const pool = require('../utils/db');
 
-async function getProductList(req, res) {
+async function getProductList() {
   let data = await pool.query('SELECT * FROM product');
-  // console.log(data[0]);
+  console.log(data[0]);
   return data[0];
 }
 
-async function getProductCategory(req, res) {
+async function getProductCategory() {
   let data = await pool.query('SELECT * FROM product_category');
-  // console.log(data[0]);
+  console.log(data[0]);
   return data[0];
 }
 
