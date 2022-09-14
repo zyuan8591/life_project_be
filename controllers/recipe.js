@@ -1,7 +1,8 @@
 const recipeModel = require('../models/recipe');
+const moment = require('moment');
 
 async function getRecipeList(req, res) {
-  let { sort, user, name = '', page, perPage, materialName = '', recipeCate, productCate } = req.query;
+  let { sort, user, name = '', page, perPage, materialName = '', recipeCate, productCate, random } = req.query;
 
   console.log(req.query);
 
@@ -18,7 +19,18 @@ async function getRecipeList(req, res) {
   let lastPage = Math.ceil(total / perPage);
   let offset = perPage * (page - 1);
 
-  let data = await recipeModel.getRecipeList(sort, user, name, perPage, offset, searchMaterial, recipeCate, productCate);
+  // random recipe
+  if (random) perPage = parseInt(random);
+  let randomRecipe = [];
+  for (let i = 0; i < random; i++) {
+    while (randomRecipe.length < i + 1) {
+      let id = Math.floor(Math.random() * total) + 1;
+      if (!randomRecipe.includes(id)) randomRecipe.push(id);
+    }
+  }
+  randomRecipe = randomRecipe.join(',');
+
+  let data = await recipeModel.getRecipeList(sort, user, name, perPage, offset, searchMaterial, recipeCate, productCate, randomRecipe);
 
   res.json({
     pagination: {
@@ -69,6 +81,21 @@ async function getMaterialList(req, res) {
   res.json(materialArr);
 }
 
+async function postRecipeComment(req, res) {
+  let id = req.params.id;
+  let { user_id, comment } = req.body;
+  let time = moment().format('YYYY-MM-DD h:mm:ss');
+  recipeModel.postCommentById(user_id, comment, id, time);
+  res.json({ message: 'ok' });
+}
+
+async function postRecipeLike(req, res) {
+  let id = req.params.id;
+  let { user_id } = req.body;
+  recipeModel.postLikeById(user_id, id);
+  res.json({ message: 'ok' });
+}
+
 module.exports = {
   getRecipeList,
   getRecipeDetail,
@@ -77,4 +104,6 @@ module.exports = {
   getRecipeCate,
   getRecipeComment,
   getMaterialList,
+  postRecipeComment,
+  postRecipeLike,
 };
