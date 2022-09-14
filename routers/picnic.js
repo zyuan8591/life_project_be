@@ -59,6 +59,11 @@ router.get('/group', async (req, res) => {
     default:
   }
 
+  let filterBtn = filterState ? `AND activity_picnic_state.id = ${filterState}` : '';
+  let filterJoinPeople = minJoinPeople || maxJoinPeople ? `AND (join_limit BETWEEN ${minJoinPeople} AND ${maxJoinPeople})` : '';
+  let filterDate = maxDate || minDate ? `AND (start_date >= '${minDate}' AND end_date <= '${maxDate}')` : '';
+  // console.log(minJoinPeople, maxJoinPeople);
+
   let [totalData] = await pool.execute(
     `SELECT activity_picnic_private.* , activity_picnic_state.activity_state , activity_picnic_location.location FROM activity_picnic_private JOIN activity_picnic_state ON activity_picnic_private.activity_state = activity_picnic_state.id JOIN activity_picnic_location ON activity_picnic_private.location = activity_picnic_location.id WHERE activity_picnic_private.picnic_title LIKE ?`,
     [`%${searchWord}%`]
@@ -69,11 +74,6 @@ router.get('/group', async (req, res) => {
   const total = totalData.length;
   let lastPage = Math.ceil(total / perPage);
   const offset = perPage * (page - 1);
-
-  let filterBtn = filterState ? `AND activity_picnic_state.id = ${filterState}` : '';
-  let filterJoinPeople = minJoinPeople || maxJoinPeople ? `AND (join_limit BETWEEN ${minJoinPeople} AND ${maxJoinPeople})` : '';
-  let filterDate = maxDate || minDate ? `AND (start_date >= '${minDate}' AND end_date <= '${maxDate}')` : '';
-  // console.log(minJoinPeople, maxJoinPeople);
 
   let [data] = await pool.execute(
     `SELECT activity_picnic_private.* , activity_picnic_state.activity_state , activity_picnic_location.location FROM activity_picnic_private JOIN activity_picnic_state ON activity_picnic_private.activity_state = activity_picnic_state.id JOIN activity_picnic_location ON activity_picnic_private.location = activity_picnic_location.id WHERE valid = 1 ${filterBtn} ${filterJoinPeople} ${filterDate} AND activity_picnic_private.picnic_title LIKE ? ORDER BY ${sortSql} LIMIT ? OFFSET ?`,
@@ -108,7 +108,7 @@ router.get('/group/:groupId', async (req, res) => {
   let [paicipantData] = await pool.execute(
     `SELECT activity_picnic_private_join.*, users.* , activity_picnic_private.* FROM activity_picnic_private_join
     JOIN users ON activity_picnic_private_join.create_user_id = users.id
-    JOIN users AS B ON activity_picnic_private_join.join_user_id = users.id
+    JOIN users ON activity_picnic_private_join.join_user_id = users.id
     JOIN activity_picnic_private ON activity_picnic_private.id = activity_picnic_private_join.picnic_id WHERE activity_picnic_private.id=?`,
     [groupId]
   );
@@ -124,49 +124,49 @@ router.get('/group/:groupId', async (req, res) => {
 });
 
 // --------------- 私人開團表單 ---------------
-// const path = require('path');
-// const multer = require('multer'); //第三方套件
-// const storage = multer.diskStorage({
-//   destination: function (req, file, cb) {
-//     cb(null, path.join(__dirname, '..', 'public', 'uploads'));
-//   },
-//   filename: function (req, file, cb) {
-//     console.log('file', file);
-//     const ext = file.originalname.split('.').pop();
-//     cb(null, `activity-${Date.now()}.${ext}`);
-//   },
-// });
-// const uploader = multer({
-//   storage: storage,
-//   fileFilter: function (req, file, cb) {
-//     // console.log('--- file ---', file);
-//     if (file.mimetype !== 'image/jpeg' && file.mimetype !== 'image/jpg' && file.mimetype !== 'image/png' && file.mimetype !== 'image/webp') {
-//       cb(new Error('上傳的檔案型態不接受'), false);
-//     } else {
-//       cb(null, true);
-//     }
-//   },
-//   limits: {
-//     fileSize: 500 * 1024,
-//   },
-// });
+const path = require('path');
+const multer = require('multer'); //第三方套件
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, '..', 'public', 'uploads'));
+  },
+  filename: function (req, file, cb) {
+    console.log('file', file);
+    const ext = file.originalname.split('.').pop();
+    cb(null, `activity-${Date.now()}.${ext}`);
+  },
+});
+const uploader = multer({
+  storage: storage,
+  fileFilter: function (req, file, cb) {
+    // console.log('--- file ---', file);
+    if (file.mimetype !== 'image/jpeg' && file.mimetype !== 'image/jpg' && file.mimetype !== 'image/png' && file.mimetype !== 'image/webp') {
+      cb(new Error('上傳的檔案型態不接受'), false);
+    } else {
+      cb(null, true);
+    }
+  },
+  limits: {
+    fileSize: 500 * 1024,
+  },
+});
 
-// router.post('/create', uploader.single('image'), async (req, res) => {
-//   console.log(req.body, req.file);
+router.post('/create', uploader.single('image'), async (req, res) => {
+  console.log(req.body, req.file);
 
-//   // TODO: 無法撈出地區資料
-//   let [locationData] = await pool.execute(
-//     'SELECT activity_pincnic_official.*, activity_picnic_location.* FROM activity_pincnic_official JOIN activity_picnic_location ON activity_pincnic_official.location = activity_picnic_location.id'
-//   );
-//   console.log(locationData);
+  // TODO: 無法撈出地區資料
+  // let [locationData] = await pool.execute(
+  //   'SELECT activity_pincnic_official.*, activity_picnic_location.* FROM activity_pincnic_official JOIN activity_picnic_location ON activity_pincnic_official.location = activity_picnic_location.id'
+  // );
+  // console.log(locationData);
 
-//   //TODO: 開團狀態怎麼處理？給預設值?
-//   let filename = req.file ? '/uploads/' + req.file.filename : '';
-//   let result = await pool.execute(
-//     'INSERT INTO activity_picnic_private (location ,address, activity_date, join_limit, picnic_title, intr, start_date, end_date, img1, valid) VALUES (?,?,?,?,?,?,?,?,?,1)',
-//     [req.body.location, req.body.address, req.body.activityDate, req.body.joinLimit, req.body.title, req.body.intr, req.body.startDate, req.body.endDate, filename]
-//   );
-//   res.json({ Message: 'OK' });
-//   console.log('INSERT new result', result);
-// });
+  //TODO: 開團狀態怎麼處理？給預設值?
+  let filename = req.file ? '/uploads/' + req.file.filename : '';
+  let result = await pool.execute(
+    'INSERT INTO activity_picnic_private (location ,address, activity_date, join_limit, picnic_title, intr, start_date, end_date, img1, valid) VALUES (?,?,?,?,?,?,?,?,?,1)',
+    [req.body.location, req.body.address, req.body.activityDate, req.body.joinLimit, req.body.title, req.body.intr, req.body.startDate, req.body.endDate, filename]
+  );
+  res.json({ Message: 'OK' });
+  console.log('INSERT new result', result);
+});
 module.exports = router;
