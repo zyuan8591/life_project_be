@@ -5,9 +5,9 @@ async function getRecipeCount(user, name = '', recipeId, recipeCate, productCate
   let userSearch = user ? `AND recipe.user_id = ${user}` : '';
   // filter for category
   let recipeCateSql = '';
-  recipeCate ? (recipeCateSql = `AND recipe.category = ${recipeCate}`) : '';
+  parseInt(recipeCate) ? (recipeCateSql = `AND recipe.category = ${recipeCate}`) : '';
   let productCateSql = '';
-  productCate ? (productCateSql = `AND recipe.product_category = ${productCate}`) : '';
+  parseInt(productCate) ? (productCateSql = `AND recipe.product_category = ${productCate}`) : '';
 
   let total = null;
   if (recipeId.length !== 0) {
@@ -26,32 +26,31 @@ async function getRecipeCount(user, name = '', recipeId, recipeCate, productCate
   return total[0][0].total;
 }
 
-async function getRecipeList(sort, user, name, perPage, offset, recipeId, recipeCate, productCate) {
+async function getRecipeList(sort, user, name, perPage, offset, recipeId, recipeCate, productCate, randomRecipe = '') {
   // Sort
   let sortSql = null;
   switch (sort) {
     case '1':
-      sortSql = 'ORDER BY create_time ASC';
-      break;
-    case '2':
       sortSql = 'ORDER BY create_time DESC';
       break;
-    case '3':
+    case '2':
       sortSql = 'ORDER BY likes DESC';
       break;
     default:
-      sortSql = '';
+      sortSql = 'ORDER BY create_time DESC';
       break;
   }
   // Search
   let userSearch = user ? `AND recipe.user_id = ${user}` : '';
-  console.log(userSearch);
 
   // filter for category
   let recipeCateSql = '';
-  recipeCate ? (recipeCateSql = `AND recipe.category = ${recipeCate}`) : '';
+  parseInt(recipeCate) ? (recipeCateSql = `AND recipe.category = ${recipeCate}`) : '';
   let productCateSql = '';
-  productCate ? (productCateSql = `AND recipe.product_category = ${productCate}`) : '';
+  parseInt(productCate) ? (productCateSql = `AND recipe.product_category = ${productCate}`) : '';
+
+  // random recipe
+  let randomSql = randomRecipe ? `AND recipe.id in (${randomRecipe})` : '';
 
   let data = null;
   if (recipeId.length !== 0) {
@@ -76,7 +75,7 @@ async function getRecipeList(sort, user, name, perPage, offset, recipeId, recipe
       JOIN product_category ON recipe.product_category = product_category.id
       LEFT JOIN recipe_comment ON recipe.id = recipe_comment.recipe_id
       LEFT JOIN recipe_like ON recipe.id = recipe_like.recipe_id
-      WHERE recipe.valid = 1 ${userSearch} ${recipeCateSql} ${productCateSql} AND recipe.name LIKE ?
+      WHERE recipe.valid = 1 ${userSearch} ${recipeCateSql} ${productCateSql} ${randomSql} AND recipe.name LIKE ?
       GROUP BY recipe.id
       ${sortSql} 
       LIMIT ? OFFSET ?`,
@@ -84,13 +83,21 @@ async function getRecipeList(sort, user, name, perPage, offset, recipeId, recipe
     );
   }
 
-  console.log(data);
-
   return data[0];
 }
 
 async function getRecipeById(id) {
-  let [data] = await pool.query('SELECT * FROM recipe WHERE id in ?', [id]);
+  let [data] = await pool.query(
+    `SELECT recipe.*, recipe_category.name AS recipe_category_name, product_category.name AS product_category_name, COUNT(DISTINCT recipe_comment.id) AS comments, COUNT(DISTINCT recipe_like.id) AS likes 
+    FROM recipe 
+    JOIN recipe_category ON recipe.category = recipe_category.id 
+    JOIN product_category ON recipe.product_category = product_category.id
+    LEFT JOIN recipe_comment ON recipe.id = recipe_comment.recipe_id
+    LEFT JOIN recipe_like ON recipe.id = recipe_like.recipe_id
+    WHERE recipe.id = (?)
+    GROUP BY recipe.id`,
+    [id]
+  );
   return data;
 }
 
@@ -125,7 +132,15 @@ async function getMaterialList() {
   return data;
 }
 
-// async function
+async function postCommentById(user_id, comment, id, time) {
+  let result = await pool.execute('INSERT INTO recipe_comment (user_id, content, recipe_id, create_time) VALUES (?, ?, ?, ?)', [user_id, comment, id, time]);
+  console.log(result);
+}
+
+async function postLikeById(user_id, id) {
+  let result = await pool.execute('INSERT INTO recipe_like (user_id, recipe_id) VALUES (?, ?)', [user_id, id]);
+  console.log(result);
+}
 
 module.exports = {
   getRecipeCount,
@@ -137,4 +152,6 @@ module.exports = {
   getRecipeCateList,
   getRecipeCommentById,
   getMaterialList,
+  postCommentById,
+  postLikeById,
 };

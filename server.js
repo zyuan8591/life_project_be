@@ -30,6 +30,7 @@ const camping = require('./routers/camping');
 const map = require('./routers/map');
 const login = require('./routers/login');
 const user = require('./routers/user');
+const userUpdata = require('./routers/userUpdata');
 
 const corsOptions = {
   // 如果要讓 cookie 可以跨網域存取，這邊要設定 credentials
@@ -39,7 +40,8 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 app.use(express.json());
-
+//設置靜態檔案
+app.use(express.static(path.join(__dirname, 'public')));
 // middleware
 app.use('/api/1.0/recipes', recipe);
 app.use('/api/1.0/news', news);
@@ -48,6 +50,7 @@ app.use('/api/1.0/camping', camping);
 app.use('/api/1.0/map', map);
 app.use('/api/1.0/', login);
 app.use('/api/1.0/user', user);
+app.use('/api/1.0/userUpdata', userUpdata);
 
 // server running
 app.listen(port, () => console.log('server is runing : ' + port));

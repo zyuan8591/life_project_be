@@ -24,4 +24,10 @@ router.get('/:id/step', recipeController.getStepById);
 // GET comment /api/1.0/recipes/5/comments
 router.get('/:id/comment', recipeController.getRecipeComment);
 
+// POST comment /api/1.0/recipes/5/comment
+router.post('/:id/comment', recipeController.postRecipeComment);
+
+// POST comment /api/1.0/recipes/5/like
+router.post('/:id/like', recipeController.postRecipeLike);
+
 module.exports = router;
