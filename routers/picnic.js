@@ -120,7 +120,7 @@ router.get('/group/:groupId', async (req, res) => {
     [groupId]
   );
 
-  res.json({ data, paicipantData, productsData });
+  res.json({ data, productsData });
 });
 
 // --------------- 私人開團表單 ---------------
