@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const recipeController = require('../controllers/recipe');
-// const moment = require('moment');
+const authMiddleware = require('../middlewares/auth');
 
 // GET recipe /api/1.0/recipes?sort=1&user=1&name='咖啡'&page=2&perPage=7
 router.get('/', recipeController.getRecipeList);
@@ -25,9 +25,13 @@ router.get('/:id/step', recipeController.getStepById);
 router.get('/:id/comment', recipeController.getRecipeComment);
 
 // POST comment /api/1.0/recipes/5/comment
-router.post('/:id/comment', recipeController.postRecipeComment);
+router.post('/:id/comment', authMiddleware.checkLogin, recipeController.postRecipeComment);
 
 // POST comment /api/1.0/recipes/5/like
-router.post('/:id/like', recipeController.postRecipeLike);
+router.post('/:id/like', authMiddleware.checkLogin, recipeController.postRecipeLike);
+
+// POST comment /api/1.0/recipes/5/step
+// router.post('/:id/step', authMiddleware.checkLogin, recipeController.postRecipeStep);
+router.post('/:id/step', recipeController.postRecipeStep);
 
 module.exports = router;

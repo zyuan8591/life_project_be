@@ -83,7 +83,8 @@ async function getMaterialList(req, res) {
 
 async function postRecipeComment(req, res) {
   let id = req.params.id;
-  let { user_id, comment } = req.body;
+  let user_id = req.session.user.id;
+  let { comment } = req.body;
   let time = moment().format('YYYY-MM-DD h:mm:ss');
   recipeModel.postCommentById(user_id, comment, id, time);
   res.json({ message: 'ok' });
@@ -91,10 +92,20 @@ async function postRecipeComment(req, res) {
 
 async function postRecipeLike(req, res) {
   let id = parseInt(req.params.id);
-  let { user_id } = req.body;
+  let user_id = req.session.user.id;
   let likeList = await recipeModel.getRecipeLikeByUser(user_id);
   if (likeList.includes(id)) return res.json({ message: '此食譜已收藏' });
-  recipeModel.postLikeById(user_id, id);
+  await recipeModel.postLikeById(user_id, id);
+  res.json({ message: 'ok' });
+}
+
+async function postRecipeStep(req, res) {
+  let id = parseInt(req.params.id);
+  let insertData = req.body.map((d) => {
+    let dataObj = { id, ...d };
+    return Object.values(dataObj);
+  });
+  await recipeModel.postRecipeStepById(id, insertData);
   res.json({ message: 'ok' });
 }
 
@@ -108,4 +119,5 @@ module.exports = {
   getMaterialList,
   postRecipeComment,
   postRecipeLike,
+  postRecipeStep,
 };
