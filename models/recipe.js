@@ -142,6 +142,12 @@ async function postLikeById(user_id, id) {
   console.log(result);
 }
 
+async function getRecipeLikeByUser(user_id) {
+  let result = await pool.execute('SELECT recipe_id FROM recipe_like WHERE user_id = ?', [user_id]);
+  let data = result[0].map((d) => d.recipe_id);
+  return data;
+}
+
 module.exports = {
   getRecipeCount,
   getRecipeList,
@@ -154,4 +160,5 @@ module.exports = {
   getMaterialList,
   postCommentById,
   postLikeById,
+  getRecipeLikeByUser,
 };

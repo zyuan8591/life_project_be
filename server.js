@@ -4,6 +4,8 @@ const app = express();
 const cors = require('cors');
 const port = process.env.SERVER_PORT || 3001;
 const path = require('path');
+const moment = require('moment');
+
 // 啟用session
 const expressSession = require('express-session');
 // 把 session 存在硬碟中
@@ -40,6 +42,10 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use((req, res, next) => {
+  console.log(`Now：${moment().format('YYYY-MM-DD h:mm:ss')}`);
+  next();
+});
 //設置靜態檔案
 app.use(express.static(path.join(__dirname, 'public')));
 // middleware
