@@ -5,4 +5,9 @@ async function getProductList(req, res) {
   let data = await productModel.getProductList();
   res.json(data);
 }
-module.exports = { getProductList };
+
+async function getProductCategory(req, res) {
+  let data = await productModel.getProductCategory();
+  res.json(data);
+}
+module.exports = { getProductList, getProductCategory };
