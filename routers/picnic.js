@@ -105,13 +105,13 @@ router.get('/group/:groupId', async (req, res) => {
     [groupId]
   );
 
-  let [paicipantData] = await pool.execute(
-    `SELECT activity_picnic_private_join.*, users.* , activity_picnic_private.* FROM activity_picnic_private_join
-    JOIN users ON activity_picnic_private_join.create_user_id = users.id
-    JOIN users ON activity_picnic_private_join.join_user_id = users.id
-    JOIN activity_picnic_private ON activity_picnic_private.id = activity_picnic_private_join.picnic_id WHERE activity_picnic_private.id=?`,
-    [groupId]
-  );
+  // let [paicipantData] = await pool.execute(
+  //   `SELECT activity_picnic_private_join.*, users.* , activity_picnic_private.* FROM activity_picnic_private_join
+  //   JOIN users ON activity_picnic_private_join.create_user_id = users.id
+  //   JOIN users ON activity_picnic_private_join.join_user_id = users.id
+  //   JOIN activity_picnic_private ON activity_picnic_private.id = activity_picnic_private_join.picnic_id WHERE activity_picnic_private.id=?`,
+  //   [groupId]
+  // );
 
   let [productsData] = await pool.execute(
     `SELECT picnic_private_recommend_product.*, product.*, activity_picnic_private.* FROM picnic_private_recommend_product
