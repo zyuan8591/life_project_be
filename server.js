@@ -33,6 +33,7 @@ const camping = require('./routers/camping');
 const map = require('./routers/map');
 const login = require('./routers/login');
 const user = require('./routers/user');
+const product = require('./routers/product');
 const userUpdata = require('./routers/userUpdata');
 
 const corsOptions = {
@@ -59,6 +60,7 @@ app.use('/api/1.0/map', map);
 app.use('/api/1.0/', login);
 app.use('/api/1.0/user', user);
 app.use('/api/1.0/userUpdata', userUpdata);
+app.use('/api/1.0/products', product);
 
 // server running
 app.listen(port, () => console.log('server is runing : ' + port));
