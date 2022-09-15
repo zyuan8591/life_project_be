@@ -2,26 +2,79 @@ const pool = require('../utils/db');
 
 // /api/1.0/map?type=1 & distance=1 & county=1 & area=1
 async function getMapList(req, res) {
-  const { type, distance } = req.query;
+  const { type, distance, search, order } = req.query;
 
   let typeSelect = type ? `AND type=${type}` : '';
-  // let distanceSelect = type ? `AND type=${distance}` : '';
+  let distanceSelect = distance ? `${distance}` : '';
+  let titleSearch = search ? `AND (title LIKE '%${search}%' OR address LIKE '%${search}%')` : '';
 
-  //distance
-  let [disResult] = await pool.execute(
-    `SELECT id,( 3959 * acos( cos( radians(25.0259029) ) * cos( radians( lat ) ) * cos( radians(lng) - radians(121.5703875)) + sin(radians(25.0259029)) * sin( radians(lat)))) AS distance FROM activity_map WHERE valid = 1 HAVING distance < 10 ORDER BY distance`
-  );
-  const disLength = disResult.length;
+  let orderType = null;
+  switch (order) {
+    case '1':
+      orderType = 'distance ASC';
+      break;
+    case '2':
+      orderType = 'distance DESC';
+      break;
+    default:
+      orderType = 'id ASC';
+  }
+  //distance test
+  // let [disResult] = await pool.execute(
+  //   `SELECT id,( 3959 * acos( cos( radians(25.0259029) ) * cos( radians( lat ) ) * cos( radians(lng) - radians(121.5703875)) + sin(radians(25.0259029)) * sin( radians(lat)))) AS distance FROM activity_map WHERE valid = 1 HAVING distance < 2 `
+  // );
+  // const disLength = disResult.length;
 
-  // result
-  let [result] = await pool.execute(`SELECT * FROM activity_map WHERE valid=1 ${typeSelect}`);
+  // result test
+  // let [result] = await pool.execute(`SELECT * FROM activity_map WHERE valid=1 ${typeSelect}`);
 
   let [allResult] = await pool.execute(
-    `SELECT * ,( 3959 * acos( cos( radians(25.0259029) ) * cos( radians( lat ) ) * cos( radians(lng) - radians(121.5703875)) + sin(radians(25.0259029)) * sin( radians(lat)))) AS distance FROM activity_map WHERE valid=1 ${typeSelect} HAVING distance < 10`
+    `SELECT * ,( 3959 * acos( cos( radians(25.10542873699434) ) * cos( radians( lat ) ) * cos( radians(lng) - radians(121.52266751703542)) + sin(radians(25.10542873699434)) * sin( radians(lat)))) AS distance FROM activity_map WHERE valid=1 ${typeSelect} ${titleSearch} HAVING distance ${distanceSelect} ORDER BY ${orderType}`
   );
-  res.json({ disLength, result, disResult, allResult });
+  let allResultL = allResult.length;
+
+  // let [campingResult] = await pool.execute(
+  //   `SELECT * ,( 3959 * acos( cos( radians(25.10542873699434) ) * cos( radians( lat ) ) * cos( radians(lng) - radians(121.52266751703542)) + sin(radians(25.10542873699434)) * sin( radians(lat)))) AS distance FROM activity_map WHERE valid=1`
+  // );
+  // campingResult = campingResult.filter((v) => {
+  //   return v.distance < 2;
+  // });
+  // console.log(campingResult);
+  // let campingResultL = campingResult.length;
+  // console.log(campingResultL)
+  res.json({ allResultL, allResult });
+}
+
+// :id
+async function getMapId(req, res) {
+  const campingId = req.params.campingId;
+
+  let [result] = await pool.execute(`SELECT * FROM activity_map WHERE valid=1 AND id=?`, [campingId]);
+  // lat,lng
+  let [nowLat] = result.map((v) => {
+    return v.lat;
+  });
+  let [nowLng] = result.map((v) => {
+    return v.lng;
+  });
+
+  // console.log(nowLat, nowLng);
+
+  let [campingResult] = await pool.execute(
+    `SELECT * ,( 3959 * acos( cos( radians(${nowLat}) ) * cos( radians( lat ) ) * cos( radians(lng) - radians(${nowLng})) + sin(radians(${nowLat})) * sin( radians(lat)))) AS distance FROM activity_map WHERE type=1 HAVING distance < 20 ORDER BY distance ASC`
+  );
+
+  campingResult = campingResult.filter((v) => {
+    const newDistance = Math.floor(v.distance);
+    return newDistance > 0;
+  });
+
+  let campingResultL = campingResult.length;
+
+  res.json({ campingResultL, campingResult });
 }
 
 module.exports = {
   getMapList,
+  getMapId,
 };
