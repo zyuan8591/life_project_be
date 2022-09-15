@@ -137,7 +137,7 @@ async function getMaterialList() {
 
 async function postCommentById(user_id, comment, id, time) {
   let result = await pool.execute('INSERT INTO recipe_comment (user_id, content, recipe_id, create_time) VALUES (?, ?, ?, ?)', [user_id, comment, id, time]);
-  console.log(result);
+  console.log(result[0].insertId);
 }
 
 async function postLikeById(user_id, id) {
@@ -151,9 +151,10 @@ async function getRecipeLikeByUser(user_id) {
   return data;
 }
 
+// POST RECIPE !!
 async function postRecipe(data) {
-  let result = await pool.query('INSERT INTO recipe (recipe_id, step, img, content) VALUES ?', [data]);
-  console.log(result);
+  let result = await pool.query('INSERT INTO recipe (name, content, category, product_category, image, user_id, create_time) VALUES (?)', [data]);
+  return result[0].insertId;
 }
 
 async function postRecipeStepById(data) {
@@ -181,4 +182,5 @@ module.exports = {
   getRecipeLikeByUser,
   postRecipeStepById,
   postRecipeMaterialById,
+  postRecipe,
 };

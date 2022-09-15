@@ -99,10 +99,16 @@ async function postRecipeLike(req, res) {
   res.json({ message: 'ok' });
 }
 
+// POST RECIPE !!!!
 async function postRecipe(req, res) {
-  let id = parseInt(req.params.id);
-  let user_id = req.session.user.id || 5;
+  // console.log('postRecipe', req.body);
+  let { name, content, category, product_category } = req.body;
+  let user_id = req.session.user.id;
   let time = moment().format('YYYY-MM-DD h:mm:ss');
+  let data = [name, content, category, product_category, `/recipe/recipe_img/${req.file.filename}`, user_id, time];
+  let insertId = await recipeModel.postRecipe(data);
+  console.log(insertId);
+  res.json({ message: 'ok', id: insertId });
 }
 
 async function postRecipeStep(req, res) {
@@ -117,14 +123,13 @@ async function postRecipeStep(req, res) {
 
 async function postRecipeMaterial(req, res) {
   let id = parseInt(req.params.id);
-  let insertData = req.body.map((d) => {
-    if (Object.keys(d).length === 0) return;
-    let dataObj = { id, ...d };
+  let insertData = req.body.material.map((d) => {
+    if (!d.name || !d.quantity) return;
+    let dataObj = { ...d, id: id };
     return Object.values(dataObj);
   });
-  for (let i = 0; i < insertData.length; i++) {
-    if (!insertData[i]) insertData.splice(i, 1);
-  }
+  // delete empty item
+  insertData = insertData.filter((d) => !!d);
   await recipeModel.postRecipeMaterialById(insertData);
   res.json({ message: 'ok' });
 }
