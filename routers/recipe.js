@@ -30,8 +30,16 @@ router.post('/:id/comment', authMiddleware.checkLogin, recipeController.postReci
 // POST comment /api/1.0/recipes/5/like
 router.post('/:id/like', authMiddleware.checkLogin, recipeController.postRecipeLike);
 
+// POST comment /api/1.0/recipes/5
+// router.post('/:id', authMiddleware.checkLogin, recipeController.postRecipe);
+router.post('/:id', recipeController.postRecipe);
+
 // POST comment /api/1.0/recipes/5/step
 // router.post('/:id/step', authMiddleware.checkLogin, recipeController.postRecipeStep);
 router.post('/:id/step', recipeController.postRecipeStep);
+
+// POST comment /api/1.0/recipes/5/material
+// router.post('/:id/material', authMiddleware.checkLogin, recipeController.postRecipeMaterial);
+router.post('/:id/material', recipeController.postRecipeMaterial);
 
 module.exports = router;

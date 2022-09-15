@@ -151,8 +151,18 @@ async function getRecipeLikeByUser(user_id) {
   return data;
 }
 
-async function postRecipeStepById(id, data) {
+async function postRecipe(data) {
+  let result = await pool.query('INSERT INTO recipe (recipe_id, step, img, content) VALUES ?', [data]);
+  console.log(result);
+}
+
+async function postRecipeStepById(data) {
   let result = await pool.query('INSERT INTO recipe_step (recipe_id, step, img, content) VALUES ?', [data]);
+  console.log(result);
+}
+
+async function postRecipeMaterialById(data) {
+  let result = await pool.query('INSERT INTO recipe_material (recipe_id, name, quantity) VALUES ?', [data]);
   console.log(result);
 }
 
@@ -170,4 +180,5 @@ module.exports = {
   postLikeById,
   getRecipeLikeByUser,
   postRecipeStepById,
+  postRecipeMaterialById,
 };
