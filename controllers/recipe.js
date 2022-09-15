@@ -4,7 +4,7 @@ const moment = require('moment');
 async function getRecipeList(req, res) {
   let { sort, user, name = '', page, perPage, materialName = '', recipeCate, productCate, random } = req.query;
 
-  console.log(req.query);
+  // console.log(req.query);
 
   // get recipe_id by material name [ 5, 9, 13 ]
   let searchMaterial = [];
