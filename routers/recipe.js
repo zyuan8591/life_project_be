@@ -36,6 +36,34 @@ const uploader = multer({
   },
 });
 
+const stepStorage = multer.diskStorage({
+  // 儲存資料夾
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, '..', 'public', 'recipe', 'recipe_step'));
+  },
+  // 圖片名稱
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
+  },
+});
+
+const stepUploader = multer({
+  storage: stepStorage,
+  // 過濾圖片的種類
+  fileFilter: function (req, file, cb) {
+    if (file.mimetype !== 'image/jpeg' && file.mimetype !== 'image/jpg' && file.mimetype !== 'image/png' && file.mimetype !== 'image/webp') {
+      cb(new Error('上傳的檔案型態不接受'), false);
+    } else {
+      cb(null, true);
+    }
+  },
+  // 過濾檔案的大小
+  limits: {
+    // 1k = 1024 => 1000k = 1000 * 1024
+    fileSize: 1000 * 1024,
+  },
+});
+
 // GET recipe /api/1.0/recipes?sort=1&user=1&name='咖啡'&page=2&perPage=7
 router.get('/', recipeController.getRecipeList);
 
@@ -44,6 +72,10 @@ router.get('/category', recipeController.getRecipeCate);
 
 // GET /api/1.0/recipes/material
 router.get('/material', recipeController.getMaterialList);
+
+// GET /api/1.0/recipes/like
+// router.get('/like', authMiddleware.checkLogin, recipeController.getUserRecipeLike);
+router.get('/like', recipeController.getUserRecipeLike);
 
 // GET detail /api/1.0/recipes/5
 router.get('/:id', recipeController.getRecipeDetail);
@@ -68,10 +100,13 @@ router.post('/', authMiddleware.checkLogin, uploader.single('image'), recipeCont
 
 // POST material /api/1.0/recipes/5/material
 // router.post('/:id/material', authMiddleware.checkLogin, recipeController.postRecipeMaterial);
-router.post('/:id/material', recipeController.postRecipeMaterial);
+router.post('/:id/material', authMiddleware.checkLogin, recipeController.postRecipeMaterial);
 
 // POST step /api/1.0/recipes/5/step
 // router.post('/:id/step', authMiddleware.checkLogin, recipeController.postRecipeStep);
-router.post('/:id/step', recipeController.postRecipeStep);
+router.post('/:id/step', authMiddleware.checkLogin, stepUploader.array('img'), recipeController.postRecipeStep);
+
+// DELETE like /api/1.0/recipes/5/like
+router.delete('/:id/like', authMiddleware.checkLogin, recipeController.delUserRecipeLike);
 
 module.exports = router;

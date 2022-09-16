@@ -113,11 +113,18 @@ async function postRecipe(req, res) {
 
 async function postRecipeStep(req, res) {
   let id = parseInt(req.params.id);
-  let insertData = req.body.map((d) => {
-    let dataObj = { id, ...d };
-    return Object.values(dataObj);
-  });
-  await recipeModel.postRecipeStepById(id, insertData);
+  let step = req.body.step.split(',');
+  let content = req.body.content.split(',');
+  let files = req.files;
+  let data = [];
+  for (let i = 0; i < step.length; i++) {
+    if (!step[i] || !content[i] || !files[i]) break;
+    data.push([]);
+    data[i].push(id, parseInt(step[i]), `/recipe/recipe_step/${files[i].originalname}`, content[i]);
+  }
+  console.log(data);
+  if (data.length === 0) return res.json({ message: '資料為空' });
+  await recipeModel.postRecipeStepById(data);
   res.json({ message: 'ok' });
 }
 
@@ -130,7 +137,21 @@ async function postRecipeMaterial(req, res) {
   });
   // delete empty item
   insertData = insertData.filter((d) => !!d);
+  if (insertData.length === 0) return res.json({ message: '資料為空' });
   await recipeModel.postRecipeMaterialById(insertData);
+  res.json({ message: 'ok' });
+}
+
+async function getUserRecipeLike(req, res) {
+  let user_id = req.session.user.id;
+  let data = await recipeModel.getRecipeLikeByUser(user_id);
+  res.json({ message: 'ok', data });
+}
+
+async function delUserRecipeLike(req, res) {
+  let user_id = req.session.user.id;
+  let recipe_id = req.params.id;
+  await recipeModel.delRecipeLike(user_id, recipe_id);
   res.json({ message: 'ok' });
 }
 
@@ -147,4 +168,6 @@ module.exports = {
   postRecipeStep,
   postRecipeMaterial,
   postRecipe,
+  getUserRecipeLike,
+  delUserRecipeLike,
 };
