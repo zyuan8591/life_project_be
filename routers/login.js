@@ -3,7 +3,7 @@ const router = express.Router();
 const pool = require('../utils/db');
 const argon2 = require('argon2');
 
-router.post('/login', async (req, res, next) => {
+router.post('/login', async (req, res) => {
   let [users] = await pool.execute('SELECT * FROM users WHERE email= ?', [req.body.email]);
   //確認資料庫有無此信箱
   if (users.length == 0) {
@@ -28,7 +28,7 @@ router.post('/login', async (req, res, next) => {
 });
 
 // logout
-router.get('/logout', async (req, res, next) => {
+router.get('/logout', async (req, res) => {
   req.session.user = null;
   res.json({ message: ' 登出成功' });
 });
