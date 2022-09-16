@@ -45,6 +45,7 @@ async function getRecipeList(sort, user, name, perPage, offset, recipeId, recipe
 
   // filter for category
   let recipeCateSql = '';
+  console.log(parseInt(recipeCate));
   parseInt(recipeCate) ? (recipeCateSql = `AND recipe.category = ${recipeCate}`) : '';
   let productCateSql = '';
   parseInt(productCate) ? (productCateSql = `AND recipe.product_category = ${productCate}`) : '';
@@ -82,7 +83,7 @@ async function getRecipeList(sort, user, name, perPage, offset, recipeId, recipe
       [`%${name}%`, perPage, offset]
     );
   }
-
+  console.log(data[0]);
   return data[0];
 }
 

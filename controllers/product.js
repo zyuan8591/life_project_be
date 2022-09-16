@@ -1,11 +1,26 @@
 const productModel = require('../models/product');
 
 async function getProductList(req, res) {
-  // let { productId, productCate } = req.query;
-  // console.log(req.query);
-  // let total = await productModel.getProductCount();
-  let data = await productModel.getProductList();
-  res.json(data);
+  let { productName, productCate, page, perPage, brand } = req.query;
+  console.log(req.query);
+  // console.log(productCate);
+  // pagination
+  page = page ? parseInt(page) : 1;
+  perPage = perPage ? parseInt(perPage) : 5;
+  let total = await productModel.getProductCount(productCate, page);
+  let lastPage = Math.ceil(total / perPage);
+  let offset = perPage * (page - 1);
+  // console.log('total', total, 'lastpage', lastPage, 'offset', offset, 'perPage', perPage);
+  let data = await productModel.getProductList(productName, productCate, perPage, offset, brand);
+  res.json({
+    pagination: {
+      total,
+      perPage,
+      page,
+      lastPage,
+    },
+    data,
+  });
 }
 
 async function getProductCategory(req, res) {
@@ -20,7 +35,8 @@ async function getProductDetail(req, res) {
 }
 
 async function getBrandList(req, res) {
-  let data = await productModel.getBrandList();
+  let { brand } = req.query;
+  let data = await productModel.getBrandList(brand);
   res.json(data);
 }
 async function getProductDetailImg(req, res) {
