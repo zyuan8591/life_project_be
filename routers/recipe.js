@@ -74,8 +74,7 @@ router.get('/category', recipeController.getRecipeCate);
 router.get('/material', recipeController.getMaterialList);
 
 // GET /api/1.0/recipes/like
-// router.get('/like', authMiddleware.checkLogin, recipeController.getUserRecipeLike);
-router.get('/like', recipeController.getUserRecipeLike);
+router.get('/like', authMiddleware.checkLogin, recipeController.getUserRecipeLike);
 
 // GET detail /api/1.0/recipes/5
 router.get('/:id', recipeController.getRecipeDetail);
@@ -99,11 +98,9 @@ router.post('/:id/like', authMiddleware.checkLogin, recipeController.postRecipeL
 router.post('/', authMiddleware.checkLogin, uploader.single('image'), recipeController.postRecipe);
 
 // POST material /api/1.0/recipes/5/material
-// router.post('/:id/material', authMiddleware.checkLogin, recipeController.postRecipeMaterial);
 router.post('/:id/material', authMiddleware.checkLogin, recipeController.postRecipeMaterial);
 
 // POST step /api/1.0/recipes/5/step
-// router.post('/:id/step', authMiddleware.checkLogin, recipeController.postRecipeStep);
 router.post('/:id/step', authMiddleware.checkLogin, stepUploader.array('img'), recipeController.postRecipeStep);
 
 // DELETE like /api/1.0/recipes/5/like
