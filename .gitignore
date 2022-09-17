@@ -4,3 +4,5 @@
 .vscode
 
 public
+public/uploads
+public/userAvatar

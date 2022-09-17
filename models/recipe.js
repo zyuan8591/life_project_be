@@ -55,12 +55,13 @@ async function getRecipeList(sort, user, name, perPage, offset, recipeId, recipe
   let data = null;
   if (recipeId.length !== 0) {
     data = await pool.query(
-      `SELECT recipe.*, recipe_category.name AS recipe_category_name, product_category.name AS product_category_name, COUNT(DISTINCT recipe_comment.id) AS comments, COUNT(DISTINCT recipe_like.id) AS likes 
+      `SELECT recipe.*, recipe_category.name AS recipe_category_name, product_category.name AS product_category_name, COUNT(DISTINCT recipe_comment.id) AS comments, COUNT(DISTINCT recipe_like.id) AS likes, users.name AS user_name
       FROM recipe 
       JOIN recipe_category ON recipe.category = recipe_category.id 
       JOIN product_category ON recipe.product_category = product_category.id
       LEFT JOIN recipe_comment ON recipe.id = recipe_comment.recipe_id
       LEFT JOIN recipe_like ON recipe.id = recipe_like.recipe_id
+      JOIN users ON recipe.user_id = users.id
       WHERE recipe.valid = 1 ${userSearch} ${recipeCateSql} ${productCateSql} AND recipe.name LIKE ? AND recipe.id IN (?)
       GROUP BY recipe.id
       ${sortSql} 
@@ -69,12 +70,13 @@ async function getRecipeList(sort, user, name, perPage, offset, recipeId, recipe
     );
   } else {
     data = await pool.query(
-      `SELECT recipe.*, recipe_category.name AS recipe_category_name, product_category.name AS product_category_name, COUNT(DISTINCT recipe_comment.id) AS comments, COUNT(DISTINCT recipe_like.id) AS likes 
+      `SELECT recipe.*, recipe_category.name AS recipe_category_name, product_category.name AS product_category_name, COUNT(DISTINCT recipe_comment.id) AS comments, COUNT(DISTINCT recipe_like.id) AS likes, users.name AS user_name
       FROM recipe 
       JOIN recipe_category ON recipe.category = recipe_category.id 
       JOIN product_category ON recipe.product_category = product_category.id
       LEFT JOIN recipe_comment ON recipe.id = recipe_comment.recipe_id
       LEFT JOIN recipe_like ON recipe.id = recipe_like.recipe_id
+      JOIN users ON recipe.user_id = users.id
       WHERE recipe.valid = 1 ${userSearch} ${recipeCateSql} ${productCateSql} ${randomSql} AND recipe.name LIKE ?
       GROUP BY recipe.id
       ${sortSql} 
@@ -88,12 +90,13 @@ async function getRecipeList(sort, user, name, perPage, offset, recipeId, recipe
 
 async function getRecipeById(id) {
   let [data] = await pool.query(
-    `SELECT recipe.*, recipe_category.name AS recipe_category_name, product_category.name AS product_category_name, COUNT(DISTINCT recipe_comment.id) AS comments, COUNT(DISTINCT recipe_like.id) AS likes 
+    `SELECT recipe.*, recipe_category.name AS recipe_category_name, product_category.name AS product_category_name, COUNT(DISTINCT recipe_comment.id) AS comments, COUNT(DISTINCT recipe_like.id) AS likes, users.name AS user_name, users.photo AS user_photo 
     FROM recipe 
     JOIN recipe_category ON recipe.category = recipe_category.id 
     JOIN product_category ON recipe.product_category = product_category.id
     LEFT JOIN recipe_comment ON recipe.id = recipe_comment.recipe_id
-    LEFT JOIN recipe_like ON recipe.id = recipe_like.recipe_id
+    LEFT JOIN recipe_like ON recipe.id = recipe_like.recipe_id 
+    JOIN users ON recipe.user_id = users.id
     WHERE recipe.id = (?)
     GROUP BY recipe.id`,
     [id]
@@ -123,7 +126,7 @@ async function getRecipeCateList() {
 }
 
 async function getRecipeCommentById(id) {
-  let [data] = await pool.execute('SELECT * FROM recipe_comment WHERE recipe_id = ?', [id]);
+  let [data] = await pool.execute('SELECT recipe_comment.*, users.photo, users.name FROM recipe_comment JOIN users ON recipe_comment.user_id = users.id WHERE recipe_id = ?', [id]);
   return data;
 }
 
@@ -134,7 +137,7 @@ async function getMaterialList() {
 
 async function postCommentById(user_id, comment, id, time) {
   let result = await pool.execute('INSERT INTO recipe_comment (user_id, content, recipe_id, create_time) VALUES (?, ?, ?, ?)', [user_id, comment, id, time]);
-  console.log(result);
+  console.log(result[0].insertId);
 }
 
 async function postLikeById(user_id, id) {
@@ -146,6 +149,32 @@ async function getRecipeLikeByUser(user_id) {
   let result = await pool.execute('SELECT recipe_id FROM recipe_like WHERE user_id = ?', [user_id]);
   let data = result[0].map((d) => d.recipe_id);
   return data;
+}
+
+// POST RECIPE !!
+async function postRecipe(data) {
+  let result = await pool.query('INSERT INTO recipe (name, content, category, product_category, image, user_id, create_time) VALUES (?)', [data]);
+  return result[0].insertId;
+}
+
+async function postRecipeStepById(data) {
+  let result = await pool.query('INSERT INTO recipe_step (recipe_id, step, img, content) VALUES ?', [data]);
+  console.log(result);
+}
+
+async function postRecipeMaterialById(data) {
+  let result = await pool.query('INSERT INTO recipe_material (recipe_id, name, quantity) VALUES ?', [data]);
+  console.log(result);
+}
+
+async function getRecipeLikeByUserId(id) {
+  let result = await pool.query('SELECT * FROM recipe_like WHERE user_id = ?', [id]);
+  return result;
+}
+
+async function delRecipeLike(user_id, recipe_id) {
+  let result = await pool.query('DELETE FROM recipe_like WHERE recipe_id = ? AND user_id = ?', [recipe_id, user_id]);
+  console.log(result);
 }
 
 module.exports = {
@@ -161,4 +190,9 @@ module.exports = {
   postCommentById,
   postLikeById,
   getRecipeLikeByUser,
+  postRecipeStepById,
+  postRecipeMaterialById,
+  postRecipe,
+  getRecipeLikeByUserId,
+  delRecipeLike,
 };
