@@ -52,6 +52,8 @@ async function getRecipeList(sort, user, name, perPage, offset, recipeId, recipe
   // random recipe
   let randomSql = randomRecipe ? `AND recipe.id in (${randomRecipe})` : '';
 
+  console.log('recipeId', recipeId);
+
   let data = null;
   if (recipeId.length !== 0) {
     data = await pool.query(
@@ -97,7 +99,7 @@ async function getRecipeById(id) {
     LEFT JOIN recipe_comment ON recipe.id = recipe_comment.recipe_id
     LEFT JOIN recipe_like ON recipe.id = recipe_like.recipe_id 
     JOIN users ON recipe.user_id = users.id
-    WHERE recipe.id = (?)
+    WHERE recipe.id in (?)
     GROUP BY recipe.id`,
     [id]
   );
