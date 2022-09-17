@@ -83,7 +83,8 @@ async function getMaterialList(req, res) {
 
 async function postRecipeComment(req, res) {
   let id = req.params.id;
-  let { user_id, comment } = req.body;
+  let user_id = req.session.user.id;
+  let { comment } = req.body;
   let time = moment().format('YYYY-MM-DD h:mm:ss');
   recipeModel.postCommentById(user_id, comment, id, time);
   res.json({ message: 'ok' });
@@ -91,10 +92,66 @@ async function postRecipeComment(req, res) {
 
 async function postRecipeLike(req, res) {
   let id = parseInt(req.params.id);
-  let { user_id } = req.body;
+  let user_id = req.session.user.id;
   let likeList = await recipeModel.getRecipeLikeByUser(user_id);
   if (likeList.includes(id)) return res.json({ message: '此食譜已收藏' });
-  recipeModel.postLikeById(user_id, id);
+  await recipeModel.postLikeById(user_id, id);
+  res.json({ message: 'ok' });
+}
+
+// POST RECIPE !!!!
+async function postRecipe(req, res) {
+  // console.log('postRecipe', req.body);
+  let { name, content, category, product_category } = req.body;
+  let user_id = req.session.user.id;
+  let time = moment().format('YYYY-MM-DD h:mm:ss');
+  let data = [name, content, category, product_category, `/recipe/recipe_img/${req.file.filename}`, user_id, time];
+  let insertId = await recipeModel.postRecipe(data);
+  console.log(insertId);
+  res.json({ message: 'ok', id: insertId });
+}
+
+async function postRecipeStep(req, res) {
+  let id = parseInt(req.params.id);
+  let step = req.body.step.split(',');
+  let content = req.body.content.split(',');
+  let files = req.files;
+  let data = [];
+  for (let i = 0; i < step.length; i++) {
+    if (!step[i] || !content[i] || !files[i]) break;
+    data.push([]);
+    data[i].push(id, parseInt(step[i]), `/recipe/recipe_step/${files[i].originalname}`, content[i]);
+  }
+  console.log(data);
+  if (data.length === 0) return res.json({ message: '資料為空' });
+  await recipeModel.postRecipeStepById(data);
+  res.json({ message: 'ok' });
+}
+
+async function postRecipeMaterial(req, res) {
+  let id = parseInt(req.params.id);
+  let insertData = req.body.material.map((d) => {
+    if (!d.name || !d.quantity) return;
+    let dataObj = { ...d, id: id };
+    return Object.values(dataObj);
+  });
+  // delete empty item
+  insertData = insertData.filter((d) => !!d);
+  if (insertData.length === 0) return res.json({ message: '資料為空' });
+  await recipeModel.postRecipeMaterialById(insertData);
+  res.json({ message: 'ok' });
+}
+
+async function getUserRecipeLike(req, res) {
+  let user_id = req.session.user.id;
+  let data = await recipeModel.getRecipeLikeByUser(user_id);
+  res.json({ message: 'ok', data });
+}
+
+async function delUserRecipeLike(req, res) {
+  let user_id = req.session.user.id;
+  let recipe_id = req.params.id;
+  await recipeModel.delRecipeLike(user_id, recipe_id);
   res.json({ message: 'ok' });
 }
 
@@ -108,4 +165,9 @@ module.exports = {
   getMaterialList,
   postRecipeComment,
   postRecipeLike,
+  postRecipeStep,
+  postRecipeMaterial,
+  postRecipe,
+  getUserRecipeLike,
+  delUserRecipeLike,
 };
