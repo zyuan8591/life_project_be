@@ -1,23 +1,24 @@
 const productModel = require('../models/product');
 
 async function getProductList(req, res) {
-  let { productName, productCate, page, perPage, brand } = req.query;
+  let { productName, productCate, page, perPage, brand, smallThan, biggerThan, sort } = req.query;
   console.log(req.query);
   // console.log(productCate);
   // pagination
   page = page ? parseInt(page) : 1;
   perPage = perPage ? parseInt(perPage) : 5;
-  let total = await productModel.getProductCount(productCate, page);
+  let total = await productModel.getProductCount(productName, productCate, brand, smallThan, biggerThan, sort);
   let lastPage = Math.ceil(total / perPage);
   let offset = perPage * (page - 1);
-  // console.log('total', total, 'lastpage', lastPage, 'offset', offset, 'perPage', perPage);
-  let data = await productModel.getProductList(productName, productCate, perPage, offset, brand);
+  console.log('total', total, 'lastpage', lastPage, 'offset', offset, 'perPage', perPage);
+  let data = await productModel.getProductList(productName, productCate, perPage, offset, brand, smallThan, biggerThan, sort);
   res.json({
     pagination: {
       total,
       perPage,
       page,
       lastPage,
+      offset,
     },
     data,
   });

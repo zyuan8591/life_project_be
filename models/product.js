@@ -1,33 +1,52 @@
 const pool = require('../utils/db');
 
-async function getProductCount(productId, productCate) {
-  // let productSearch = productId ? `product.id= ${productId}` : '';
-  // let productCateSql = '';
-  // parseInt(productCate) ? (productCateSql = `AND product.category = ${productCate}`) : '';
-  // let total = null;
-  // if (productId.length !== 0) {
-  //   total = await pool.query(`SELECT COUNT(*) AS total FROM product WHERE ${productSearch} ${productCateSql} AND product.id IN (?)`, [productId]);
-  // } else {
-  //   total = await pool.query(`SELECT COUNT(*) AS total FROM product WHERE ${productSearch} ${productCateSql}`);
-  // }
-  // console.log(total);
-  // return total;
-  let total = await pool.query(`SELECT COUNT(*) AS total FROM product`);
+async function getProductCount(productName, productCate, brand, smallThan, biggerThan, sort) {
+  let productCateSql = '';
+  let productBrandSql = '';
+  let biggerThanSql = '';
+  let smallThanSql = '';
+  parseInt(productCate) ? (productCateSql = `AND category = ${productCate}`) : '';
+  parseInt(brand) ? (productBrandSql = `AND company_id = ${brand}`) : '';
+  parseInt(biggerThan) ? (biggerThanSql = ` AND price >= ${biggerThan}`) : '';
+  parseInt(smallThan) ? (smallThanSql = ` AND price <= ${smallThan}`) : '';
+  let total = await pool.query(
+    `SELECT COUNT(*) AS total FROM product WHERE valid = 1 ${productCateSql} ${productBrandSql} ${biggerThanSql} ${smallThanSql} AND product.name LIKE ?`,
+    [`%${productName}%`]
+  );
   // console.log(total[0][0].total);
   return total[0][0].total;
 }
 
-async function getProductList(productName, productCate, perPage, offset, brand) {
-  // filter for category
+async function getProductList(productName = '', productCate, perPage, offset, brand, smallThan, biggerThan, sort) {
+  // sort
+  let sortSql = null;
+  switch (sort) {
+    case '1':
+      sortSql = 'ORDER BY id DESC';
+      break;
+    case '2':
+      sortSql = 'ORDER BY created_time DESC';
+      break;
+    default:
+      sortSql = '';
+      break;
+  }
+  // category
   let productCateSql = '';
   let productBrandSql = '';
+  let biggerThanSql = '';
+  let smallThanSql = '';
   console.log('productCate', productCate);
   console.log('productName', productName);
-  console.log('brand', brand);
+  console.log('biggerThan', biggerThan);
+  console.log('smallThan', smallThan);
+  // console.log('brand', brand);
   parseInt(productCate) ? (productCateSql = `AND category = ${productCate}`) : '';
   parseInt(brand) ? (productBrandSql = `AND company_id = ${brand}`) : '';
+  parseInt(biggerThan) ? (biggerThanSql = ` AND price >= ${biggerThan}`) : '';
+  parseInt(smallThan) ? (smallThanSql = ` AND price <= ${smallThan}`) : '';
   let data = await pool.query(
-    `SELECT product.*, product_category.name AS product_category_name, company.name AS brand FROM product JOIN product_category ON product.category = product_category.id JOIN company ON product.company_id = company.id WHERE valid = 1 ${productCateSql} ${productBrandSql} AND product.name LIKE ? LIMIT ? OFFSET ?`,
+    `SELECT product.*, product_category.name AS product_category_name, company.name AS brand FROM product JOIN product_category ON product.category = product_category.id JOIN company ON product.company_id = company.id WHERE valid = 1 ${productCateSql} ${productBrandSql} ${biggerThanSql} ${smallThanSql} AND product.name LIKE ? ${sortSql} LIMIT ? OFFSET ?`,
     [`%${productName}%`, perPage, offset]
   );
   console.log('productCateSql', productCateSql);
