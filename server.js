@@ -6,6 +6,33 @@ const port = process.env.SERVER_PORT || 3001;
 const path = require('path');
 const moment = require('moment');
 
+// socket.io
+const http = require('http');
+const server = http.createServer(app);
+const { Server } = require('socket.io');
+const io = new Server(server, {
+  cors: {
+    origin: ['http://localhost:3000'],
+    credentials: true,
+  },
+});
+
+// client 連線的 >> connection 事件
+io.on('connection', (socket) => {
+  console.log('socket: a user connected');
+  socket.on('disconnect', () => {
+    console.log('socket: user disconnected');
+  });
+  socket.on('name', (name) => {
+    console.log('socket: name from name', name);
+  });
+  // socket 「聽」MFEE27
+  socket.on('life', (msg) => {
+    console.log('socket: msg from MFEE27', msg);
+    socket.broadcast.emit('chat', msg);
+  });
+});
+
 // 啟用session
 const expressSession = require('express-session');
 // 把 session 存在硬碟中
@@ -63,4 +90,4 @@ app.use('/api/1.0/userUpdata', userUpdata);
 app.use('/api/1.0/products', product);
 
 // server running
-app.listen(port, () => console.log('server is runing : ' + port));
+server.listen(port, () => console.log('server is runing : ' + port));

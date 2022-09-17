@@ -167,6 +167,16 @@ async function postRecipeMaterialById(data) {
   console.log(result);
 }
 
+async function getRecipeLikeByUserId(id) {
+  let result = await pool.query('SELECT * FROM recipe_like WHERE user_id = ?', [id]);
+  return result;
+}
+
+async function delRecipeLike(user_id, recipe_id) {
+  let result = await pool.query('DELETE FROM recipe_like WHERE recipe_id = ? AND user_id = ?', [recipe_id, user_id]);
+  console.log(result);
+}
+
 module.exports = {
   getRecipeCount,
   getRecipeList,
@@ -183,4 +193,6 @@ module.exports = {
   postRecipeStepById,
   postRecipeMaterialById,
   postRecipe,
+  getRecipeLikeByUserId,
+  delRecipeLike,
 };
