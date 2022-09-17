@@ -1,12 +1,12 @@
 const pool = require('../utils/db');
 
-async function getProductCount(productName, productCate, brand, smallThan, biggerThan, sort) {
+async function getProductCount(productName, productCate, brand, smallThan, biggerThan) {
   let productCateSql = '';
   let productBrandSql = '';
   let biggerThanSql = '';
   let smallThanSql = '';
   parseInt(productCate) ? (productCateSql = `AND category = ${productCate}`) : '';
-  parseInt(brand) ? (productBrandSql = `AND company_id = ${brand}`) : '';
+  parseInt(brand) ? (productBrandSql = `AND company_id in (${brand})`) : '';
   parseInt(biggerThan) ? (biggerThanSql = ` AND price >= ${biggerThan}`) : '';
   parseInt(smallThan) ? (smallThanSql = ` AND price <= ${smallThan}`) : '';
   let total = await pool.query(
@@ -42,7 +42,7 @@ async function getProductList(productName = '', productCate, perPage, offset, br
   console.log('smallThan', smallThan);
   // console.log('brand', brand);
   parseInt(productCate) ? (productCateSql = `AND category = ${productCate}`) : '';
-  parseInt(brand) ? (productBrandSql = `AND company_id = ${brand}`) : '';
+  parseInt(brand) ? (productBrandSql = `AND company_id IN (${brand})`) : '';
   parseInt(biggerThan) ? (biggerThanSql = ` AND price >= ${biggerThan}`) : '';
   parseInt(smallThan) ? (smallThanSql = ` AND price <= ${smallThan}`) : '';
   let data = await pool.query(
@@ -71,6 +71,9 @@ async function getProductById(id) {
 
 async function getBrandList(brand) {
   // let [data] = await pool.query(`SELECT * FROM company `);
+  // let productCateSql = '';
+  // parseInt(productCate) ? (productCateSql = `AND category = ${productCate}`) : '';
+  console.log(brand);
   let [data] = await pool.query(`SELECT * FROM company WHERE name LIKE ?`, [`%${brand}%`]);
   console.log(data);
   return data;
