@@ -35,6 +35,7 @@ const login = require('./routers/login');
 const user = require('./routers/user');
 const product = require('./routers/product');
 const userUpdata = require('./routers/userUpdata');
+const order = require('./routers/order');
 
 const corsOptions = {
   // 如果要讓 cookie 可以跨網域存取，這邊要設定 credentials
@@ -61,6 +62,7 @@ app.use('/api/1.0/', login);
 app.use('/api/1.0/user', user);
 app.use('/api/1.0/userUpdata', userUpdata);
 app.use('/api/1.0/products', product);
+app.use('/api/1.0/orders', order);
 
 // server running
 app.listen(port, () => console.log('server is runing : ' + port));
