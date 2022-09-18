@@ -1,4 +1,5 @@
 const productModel = require('../models/product');
+const moment = require('moment');
 
 async function getProductList(req, res) {
   let { productName, productCate, page, perPage, brand, smallThan, biggerThan, sort } = req.query;
@@ -46,4 +47,28 @@ async function getProductDetailImg(req, res) {
   res.json(data);
 }
 
-module.exports = { getProductList, getProductCategory, getProductDetail, getBrandList, getProductDetailImg };
+async function getProductComment(req, res) {
+  let id = req.params.id;
+  let data = await productModel.getProductComment(id);
+  res.json(data);
+}
+
+async function writeProductComment(req, res) {
+  let id = req.params.id;
+  let user_id = req.session.user.id;
+  let { comment, star } = req.body;
+  let time = moment().format('YYYY-MM-DD h:mm:ss');
+  productModel.writeProductComment(user_id, comment, id, time, star);
+  res.json({ message: 'ok' });
+  console.log(id, user_id, comment, star, time);
+}
+
+async function addProductLike(req, res) {
+  let { id } = req.body;
+  let user_id = req.session.user.id;
+  productModel.addProductLike(user_id, id);
+  res.json({ message: 'ok' });
+  console.log(id, user_id);
+}
+
+module.exports = { getProductList, getProductCategory, getProductDetail, getBrandList, getProductDetailImg, getProductComment, writeProductComment, addProductLike };

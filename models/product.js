@@ -70,9 +70,6 @@ async function getProductById(id) {
 }
 
 async function getBrandList(brand) {
-  // let [data] = await pool.query(`SELECT * FROM company `);
-  // let productCateSql = '';
-  // parseInt(productCate) ? (productCateSql = `AND category = ${productCate}`) : '';
   console.log(brand);
   let [data] = await pool.query(`SELECT * FROM company WHERE name LIKE ?`, [`%${brand}%`]);
   console.log(data);
@@ -84,4 +81,22 @@ async function getProductDetailImg(id) {
   return data;
 }
 
-module.exports = { getProductList, getProductCategory, getProductById, getBrandList, getProductDetailImg, getProductCount };
+async function getProductComment(id) {
+  let [data] = await pool.query(
+    `SELECT product_comment.*, users.photo, users.name FROM product_comment JOIN users ON product_comment.user_id = users.id WHERE product_id = ? ORDER BY create_time DESC`,
+    [id]
+  );
+  return data;
+}
+
+async function writeProductComment(user_id, comment, id, time, star) {
+  let result = await pool.execute(`INSERT INTO product_comment (user_id, comment, product_id, create_time, star) VALUES (?, ?, ?, ?, ?)`, [user_id, comment, id, time, star]);
+  console.log(result);
+}
+
+async function addProductLike(user_id, id) {
+  let result = await pool.execute(`INSERT INTO product_like (user_id, product_id,) VALUES (?, ?)`, [user_id, id]);
+  console.log(result);
+}
+
+module.exports = { getProductList, getProductCategory, getProductById, getBrandList, getProductDetailImg, getProductCount, getProductComment, writeProductComment, addProductLike };
