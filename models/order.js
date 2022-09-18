@@ -15,7 +15,7 @@ async function getOrders() {}
 async function getOrderDetailInfo() {}
 
 async function postOrderById(user_id, status, delivery, payment, create_time, cartTotal) {
-  let orderResult = await pool.execute('INSERT INTO orders (user_id, status_id, delivery_id, payment_id, create_time, order_total) VALUES (?,?,?,?,?,?)', [
+  let result = await pool.execute('INSERT INTO orders (user_id, status_id, delivery_id, payment_id, create_time, order_total) VALUES (?,?,?,?,?,?)', [
     user_id,
     status,
     delivery,
@@ -23,19 +23,11 @@ async function postOrderById(user_id, status, delivery, payment, create_time, ca
     create_time,
     cartTotal,
   ]);
-  console.log(orderResult);
-  return orderResult;
+  return result;
 }
 
-async function postOrderDetailById(order_id, product_id, picnic_id, camping_id, quantity) {
-  let result = await pool.execute('INSERT INTO order_detail (order_id, product_id, picnic_id, camping_id, quantity) VALLUES (?,?,?,?,?)', [
-    order_id,
-    product_id,
-    picnic_id,
-    camping_id,
-    quantity,
-  ]);
-  console.log(result);
+async function postOrderDetailById(cartItem) {
+  let result = await pool.query('INSERT INTO order_detail (order_id, product_id, camping_id, picnic_id, quantity) VALUES ?', [cartItem]);
   return result;
 }
 

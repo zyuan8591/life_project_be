@@ -1,6 +1,6 @@
 const orderModel = require('../models/order');
 const moment = require('moment');
-const { default: axios } = require('axios');
+const { axios } = require('axios');
 
 async function getOrderDeliveryList(req, res) {
   let data = await orderModel.getOrderDelivery();
@@ -17,7 +17,7 @@ async function getOrderList(req, res) {}
 async function getOrderDetail(req, res) {}
 
 async function postOrder(req, res) {
-  console.log(req.body);
+  // console.log('body:', req.body);
 
   // insert into orders
   let { delivery, payment, productTotal, picnicTotal, campingTotal } = req.body;
@@ -26,23 +26,51 @@ async function postOrder(req, res) {
   let status = 3;
 
   // console.log(req.session);
+  if (req.session.user === null) return;
+
   let user_id = req.session.user.id;
   // console.log('id', user_id);
-  // if (!user_id) return;
 
-  let orderResult = await orderModel.postOrderById(user_id, status, delivery, payment, create_time, cartTotal);
-  // console.log(orderResult);
+  let insertOrders = await orderModel.postOrderById(user_id, status, delivery, payment, create_time, cartTotal);
+  // console.log(insertOrders);
 
-  // insert into detail
-  let order_id = orderResult[0].insertId;
+  let order_id = insertOrders[0].insertId;
   // console.log('orderId', order_id);
 
-  let { prouductItems, picnicItems, campingItems } = req.body;
-  console.log(prouductItems, picnicItems, campingItems);
+  // insert into order_detail
+  //         [[1, 87, 0, 0, 2], [], ...]
+  // let data = [order_id, product_id, picnic_id, cammping_id, quantity];
 
-  // orderModel.postOrderDetailById(order_id, productId, picnicId, campingId, quantity);
+  let { productItems, picnicItems, campingItems } = req.body;
+  // console.log(prouductItems, picnicItems, campingItems);
+  let productCartItem = productItems
+    .filter((v) => v.ischecked === true)
+    .map((d) => {
+      return [order_id, d.id, 0, 0, d.quantity];
+    });
+  // console.log(productCartItem);
 
-  // insert into detail recipient
+  let campingCartItem = campingItems
+    .filter((v) => v.ischecked === true)
+    .map((d) => {
+      return [order_id, 0, d.id, 0, d.quantity];
+    });
+  // console.log(campingCartItem);
+
+  let picnicCartItem = picnicItems
+    .filter((v) => v.ischecked === true)
+    .map((d) => {
+      return [order_id, 0, 0, d.id, d.quantity];
+    });
+  // console.log(picnicCartItem);
+
+  let cartItem = [...productCartItem, ...campingCartItem, ...picnicCartItem];
+  // console.log(cartItem);
+
+  let orderDetailResult = await orderModel.postOrderDetailById(cartItem);
+  console.log('in ctrl', orderDetailResult);
+
+  // insert into order_info
   let { name, phone, email, memo, cityName, areaName, address } = req.body;
   let fullAddress = cityName + areaName + address;
 
