@@ -20,7 +20,7 @@ const uploader = multer({
   storage: storage,
   // 過濾圖片的種類
   fileFilter: function (req, file, cb) {
-    if (file.mimetype !== 'image/jpeg' && file.mimetype !== 'image/jpg' && file.mimetype !== 'image/png') {
+    if (file.mimetype !== 'image/jpeg' && file.mimetype !== 'image/jpg' && file.mimetype !== 'image/png' && file.mimetype !== 'image/webp') {
       cb(new Error('上傳的檔案型態不接受'), false);
     } else {
       cb(null, true);
