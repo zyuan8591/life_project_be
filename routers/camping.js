@@ -23,11 +23,14 @@ router.post('/campingCollect/:campingId', authMid.checkLogin, campingController.
 // delete collect
 router.delete('/campingCollect/:campingId', authMid.checkLogin, campingController.postDeleteCollect);
 
+// user collect
+router.get('/userCollect', authMid.checkLogin, campingController.userCollects);
+
 // add join  --> /api/1.0/camping/campingJoin/1
 router.post('/campingJoin/:campingId', authMid.checkLogin, campingController.postCampingJoin);
 
 router.delete('/campingJoin/:campingId', authMid.checkLogin, campingController.postDeleteJoin);
-
+router.get('/getUserJoin/:campingId', campingController.joinuser);
 router.get('/:campingId', campingController.getCampingDetail);
 
 module.exports = router;
