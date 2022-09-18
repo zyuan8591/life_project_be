@@ -20,13 +20,13 @@ async function postOrder(req, res) {
   // console.log('body:', req.body);
 
   // insert into orders
-  // sql [idsertId, user_id, status_id, delivery_id, payment_id, order_total, create_time, recipient_name, recipient_phone, recipient_address, recipient_recipient_email, memo, point_discount ]
   let { delivery, payment, productTotal, picnicTotal, campingTotal, name, phone, email, memo, cityName, areaName, address } = req.body;
 
   let fullAddress = cityName + areaName + address;
   let cartTotal = productTotal + picnicTotal + campingTotal;
   let create_time = moment().format('YYYY-MM-DD h:mm:ss');
   let status = 3;
+  // TODO: point
   let point_discount = 10;
 
   // console.log(req.session);
@@ -38,13 +38,13 @@ async function postOrder(req, res) {
   let orderData = [user_id, status, delivery, payment, cartTotal, create_time, name, phone, fullAddress, email, memo, point_discount];
 
   let insertOrders = await orderModel.postOrderById(orderData);
-  console.log(insertOrders);
+  // console.log('insertOrders', insertOrders);
 
   let order_id = insertOrders[0].insertId;
   // console.log('orderId', order_id);
 
   // insert into order_detail
-  //         [[1, 87, 0, 0, 2], [], ...]
+  //            [[1, 87, 0, 0, 2], [], ...]
   // let data = [order_id, product_id, picnic_id, cammping_id, quantity];
 
   let { productItems, picnicItems, campingItems } = req.body;
@@ -74,7 +74,7 @@ async function postOrder(req, res) {
   // console.log(cartItem);
 
   let orderDetailResult = await orderModel.postOrderDetailById(cartItem);
-  console.log('in ctrl', orderDetailResult);
+  console.log('orderDetailResult', orderDetailResult);
 
   // if (req.body.payment === 3) {
   //   axios;

@@ -16,7 +16,7 @@ async function getOrderDetailInfo() {}
 
 async function postOrderById(orderData) {
   let result = await pool.query(
-    'INSERT INTO orders (user_id, status_id, delivery_id, payment_id,  order_total, create_time, recipient_name, recipient_phone, recipient_address, recipient_email, memo, point_discount) VALUES ?',
+    'INSERT INTO orders (user_id, status_id, delivery_id, payment_id,  order_total, create_time, recipient_name, recipient_phone, recipient_address, recipient_email,memo, point_discount) VALUES (?)',
     [orderData]
   );
   return result;
