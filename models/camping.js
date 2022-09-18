@@ -52,4 +52,17 @@ async function deleteJoinCamping(userId, campingId) {
   console.log('joinDel', result);
 }
 
-module.exports = { getCampingById, addCollectCamping, getCollectCamping, deleteCollectCamping, getJoinById, addJoinCamping, getJoinCamping, deleteJoinCamping };
+// user collect
+async function getCollectUser(userId) {
+  let [collectResult] = await pool.execute('SELECT * FROM activity_camping_collect WHERE user_id = ?', [userId]);
+
+  let campingIds = collectResult.map((users) => users.activity_id);
+  // console.log(userId);
+  // console.log(campingIds);
+
+  let [result] = await pool.query(`SELECT * FROM activity_camping WHERE id in (?)`, [campingIds]);
+
+  return result;
+}
+
+module.exports = { getCampingById, addCollectCamping, getCollectCamping, deleteCollectCamping, getJoinById, addJoinCamping, getJoinCamping, deleteJoinCamping, getCollectUser };

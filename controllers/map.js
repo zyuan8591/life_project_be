@@ -40,7 +40,11 @@ async function getMapList(req, res) {
 async function getMapId(req, res) {
   const campingId = req.params.campingId;
 
+  // get asideId
+  let [asideIdresult] = await pool.execute(`SELECT * FROM activity_map WHERE valid=1 AND id=?`, [campingId]);
+
   let [result] = await pool.execute(`SELECT * FROM activity_map WHERE valid=1 AND id=?`, [campingId]);
+
   // lat,lng
   let [nowLat] = result.map((v) => {
     return v.lat;
@@ -62,7 +66,22 @@ async function getMapId(req, res) {
 
   let campingResultL = campingResult.length;
 
-  res.json({ campingResultL, campingResult });
+  let campingIds = campingResult.map((camping) => camping.id);
+  // console.log('campingIds', campingIds);
+
+  let [joinResult] = await pool.query(
+    `SELECT j.*, users.id, users.name, users.photo FROM activity_camping_join j JOIN users ON j.user_id = users.id WHERE j.activity_id in (?) order by j.activity_id`,
+    [campingIds]
+  );
+
+  // On2
+  campingResult.map((camping) => {
+    camping.users = joinResult.filter((join) => {
+      return join.activity_id === camping.id;
+    });
+  });
+
+  res.json({ campingResultL, campingResult, asideIdresult });
 }
 
 module.exports = {

@@ -162,6 +162,84 @@ async function postDeleteJoin(req, res) {
   let getJoin = await campingModel.getJoinCamping(req.session.user.id);
   res.json({ message: 'ok', getJoin });
 }
+// 會員
+async function joinuser(req, res) {
+  const userId = req.session.user.id;
+
+  const activityState = ['即將開團', '開團中', '已成團', '開團已截止'];
+
+  const perPage = 12;
+  const page = req.query.page || 1;
+  // total
+  let [total] = await pool.execute('SELECT COUNT(*) AS total FROM activity_camping WHERE valid = 1');
+  total = total[0].total;
+
+  let lastPage = Math.ceil(total / perPage);
+  const offset = perPage * (page - 1);
+
+  let [userResult] = await pool.execute(`SELECT j.*, users.id FROM activity_camping_join j JOIN users ON j.user_id = users.id WHERE j.user_id=?`, [userId]);
+
+  let campingIds = userResult.map((users) => users.activity_id);
+  // console.log(campingIds);
+  let [joinResult] = await pool.query(`SELECT * FROM activity_camping WHERE id in (?)`, [campingIds]);
+  // console.log(joinResult);
+
+  // console.log(joinResult.length);
+
+  joinResult = joinResult.map((d) => {
+    let todayDate = Number(moment().format('YYYYMMDD'));
+    let startDate = parseInt(d.start_date.replace(/-/g, ''));
+    let endDate = parseInt(d.end_date.replace(/-/g, ''));
+    let state = '';
+    let count = d.pepcount;
+    if (startDate < todayDate && endDate < todayDate) state = activityState[3];
+    if (startDate <= todayDate && endDate >= todayDate) state = activityState[1];
+    if (d.join_limit === count) state = activityState[2];
+    if (startDate > todayDate && endDate > todayDate) state = activityState[0];
+    return { ...d, state };
+  });
+
+  // console.log('totalResult', totalResult, totalResult.length);
+  let result = joinResult.slice(offset, offset + perPage);
+
+  // filter total
+  total = joinResult.length;
+  lastPage = Math.ceil(total / perPage);
+  // console.log(total, lastPage);
+  res.json({
+    pagination: {
+      total,
+      perPage,
+      page,
+      lastPage,
+    },
+    result,
+  });
+}
+
+// user collect
+async function userCollects(req, res) {
+  const userId = req.session.user.id;
+
+  let getUserCollect = await campingModel.getCollectUser(userId);
+  let total = getUserCollect.length;
+  // console.log(getUserCollect.length);
+  const perPage = 12;
+  const page = req.query.page || 1;
+  let lastPage = Math.ceil(total / perPage);
+  const offset = perPage * (page - 1);
+  let result = getUserCollect.slice(offset, offset + perPage);
+
+  res.json({
+    pagination: {
+      total,
+      perPage,
+      page,
+      lastPage,
+    },
+    result,
+  });
+}
 
 module.exports = {
   getCampingList,
@@ -171,4 +249,6 @@ module.exports = {
   // getCampingCollect,
   postCampingJoin,
   postDeleteJoin,
+  joinuser,
+  userCollects,
 };
