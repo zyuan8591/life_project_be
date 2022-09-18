@@ -219,16 +219,28 @@ async function joinuser(req, res) {
 
 // user collect
 async function userCollects(req, res) {
-  const userId = req.session.user.id;
+  //
+  let [collectResult] = await pool.execute('SELECT * FROM activity_camping_collect WHERE user_id = ?', [req.session.user.id]);
 
-  let getUserCollect = await campingModel.getCollectUser(userId);
-  let total = getUserCollect.length;
-  // console.log(getUserCollect.length);
+  let campingIds = collectResult.map((users) => users.activity_id);
+  let idLength = campingIds.length;
+  // console.log(idLength);
+  if (idLength === 0) {
+    return res.json({ message: '該會員目前沒有收藏' });
+  }
+  // console.log(userId);
+  // console.log('collectResult', collectResult);
+
+  let [result] = await pool.query(`SELECT * FROM activity_camping WHERE id in (?)`, [campingIds]);
+  // console.log(result);
+  //
+  let total = result.length;
+  // console.log(total);
   const perPage = 12;
   const page = req.query.page || 1;
   let lastPage = Math.ceil(total / perPage);
   const offset = perPage * (page - 1);
-  let result = getUserCollect.slice(offset, offset + perPage);
+  result = result.slice(offset, offset + perPage);
 
   res.json({
     pagination: {
