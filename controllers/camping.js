@@ -255,6 +255,41 @@ async function userCollects(req, res) {
   });
 }
 
+// user join History
+async function joinHistory(req, res) {
+  let [joinResult] = await pool.execute('SELECT * FROM activity_camping_join WHERE user_id = ?', [req.session.user.id]);
+
+  let campingIds = joinResult.map((users) => users.activity_id);
+
+  if (campingIds.length === 0) {
+    return res.json({ pagination: { total: 0, perPage: 5, page: 1, lastPage: 0 }, result: [] });
+  }
+  // console.log(campingIds);
+  // console.log('collectResult', collectResult);
+  let todayDate = Number(moment().format('YYYYMMDD'));
+
+  let [result] = await pool.query(`SELECT * FROM activity_camping c WHERE id in (?) AND c.activity_end_date < ${todayDate}`, [campingIds]);
+  // console.log(result);
+  //
+  let total = result.length;
+  // console.log(total);
+  const perPage = 5;
+  const page = req.query.page || 1;
+  let lastPage = Math.ceil(total / perPage);
+  const offset = perPage * (page - 1);
+  result = result.slice(offset, offset + perPage);
+
+  res.json({
+    pagination: {
+      total,
+      perPage,
+      page,
+      lastPage,
+    },
+    result,
+  });
+}
+
 module.exports = {
   getCampingList,
   getCampingDetail,
@@ -265,4 +300,5 @@ module.exports = {
   postDeleteJoin,
   joinuser,
   userCollects,
+  joinHistory,
 };
