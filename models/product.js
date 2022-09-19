@@ -95,8 +95,26 @@ async function writeProductComment(user_id, writeComment, id, time, star) {
 }
 
 async function addProductLike(user_id, id) {
-  let result = await pool.execute(`INSERT INTO product_like (user_id, product_id,) VALUES (?, ?)`, [user_id, id]);
+  let result = await pool.execute(`INSERT INTO product_like (user_id, product_id) VALUES (?, ?)`, [user_id, id]);
   console.log(result);
 }
 
-module.exports = { getProductList, getProductCategory, getProductById, getBrandList, getProductDetailImg, getProductCount, getProductComment, writeProductComment, addProductLike };
+async function getProductLike(user_id) {
+  let [data] = await pool.query(`SELECT product_like.*, product.name, product.img FROM product_like JOIN product_like ON product_like.product_id = product.id WHERE user_id = ? `, [
+    user_id,
+  ]);
+  return data;
+}
+
+module.exports = {
+  getProductList,
+  getProductCategory,
+  getProductById,
+  getBrandList,
+  getProductDetailImg,
+  getProductCount,
+  getProductComment,
+  writeProductComment,
+  addProductLike,
+  getProductLike,
+};

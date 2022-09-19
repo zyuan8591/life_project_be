@@ -66,7 +66,6 @@ async function writeProductComment(req, res) {
   let time = moment().format('YYYY-MM-DD h:mm:ss');
   productModel.writeProductComment(user_id, writeComment, id, time, star);
   res.json({ message: 'ok' });
-  console.log(id, user_id, writeComment, star, time);
 }
 
 async function addProductLike(req, res) {
@@ -74,7 +73,14 @@ async function addProductLike(req, res) {
   let user_id = req.session.user.id;
   productModel.addProductLike(user_id, id);
   res.json({ message: 'ok' });
-  // console.log(id, user_id);
+  console.log(id, user_id);
+}
+
+async function getProductLike(req, res) {
+  let user_id = req.session.user.id;
+  let data = await productModel.getProductLike(user_id);
+  res.json(data);
+  console.log(user_id);
 }
 
 module.exports = {
@@ -87,4 +93,5 @@ module.exports = {
   getProductComment,
   writeProductComment,
   addProductLike,
+  getProductLike,
 };

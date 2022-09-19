@@ -7,7 +7,7 @@ const authMiddleware = require('../middlewares/auth');
 router.get('/index', productController.getIndexProduct);
 
 // GET /products
-router.get('/', authMiddleware.checkLogin, productController.getProductList);
+router.get('/', productController.getProductList);
 
 // GET /products/category
 router.get('/category', productController.getProductCategory);
@@ -25,9 +25,12 @@ router.get('/:id/detailImg', productController.getProductDetailImg);
 // GET /products/1/comment
 router.get('/:id/productComment', productController.getProductComment);
 
+// GET /products/like
+router.get('/:user_id/like', authMiddleware.checkLogin, productController.getProductLike);
+
 // POST /products/1/comment
 router.post('/:id/comment', authMiddleware.checkLogin, productController.writeProductComment);
 
-router.post('/like', authMiddleware.checkLogin, productController.addProductLike);
+router.post('/addLike', authMiddleware.checkLogin, productController.addProductLike);
 
 module.exports = router;
