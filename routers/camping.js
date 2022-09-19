@@ -31,6 +31,9 @@ router.get('/userJoin', authMid.checkLogin, campingController.joinHistory);
 // add join  --> /api/1.0/camping/campingJoin/1
 router.post('/campingJoin/:campingId', authMid.checkLogin, campingController.postCampingJoin);
 
+// Backstage
+router.get('/backstage', campingController.backstageAllData);
+
 router.delete('/campingJoin/:campingId', authMid.checkLogin, campingController.postDeleteJoin);
 router.get('/getUserJoin/:campingId', authMid.checkLogin, campingController.joinuser);
 router.get('/:campingId', campingController.getCampingDetail);
