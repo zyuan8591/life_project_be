@@ -12,7 +12,31 @@ async function getOrderPaymentList(req, res) {
   res.json(data);
 }
 
-async function getOrderList(req, res) {}
+async function getOrderList(req, res) {
+  let { page, perPage, status, sort, user } = req.query;
+
+  // let user = req.session.user.id;
+
+  // pagination
+  // page = page ? parseInt(page) : 1;
+  // perPage = perPage ? parseInt(perPage) : 5;
+  let total = await orderModel.getOrderCount(user);
+  console.log(total);
+  // let lastPage = Math.ceil(total / perPage);
+  // let offset = perPage * (page - 1);
+
+  let data = await orderModel.getOrders(status, user);
+
+  res.json({
+    // pagination: {
+    //   total,
+    //   perPage,
+    //   page,
+    //   lastPage,
+    // },
+    data,
+  });
+}
 
 async function getOrderDetail(req, res) {}
 
@@ -28,6 +52,14 @@ async function postOrder(req, res) {
   let status = 3;
   // TODO: point
   let point_discount = 10;
+
+  // 綠界
+  // let values = 123;
+
+  // if (payment === 3) {
+  //   await axios.post('https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5', values);
+  // }
+  // return;
 
   // console.log(req.session);
   if (req.session.user === null) return;
