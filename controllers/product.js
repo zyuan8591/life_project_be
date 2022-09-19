@@ -91,6 +91,19 @@ async function removeProductLike(req, res) {
   console.log('remove', id, user_id);
 }
 
+async function getRandomProductRecommend(req, res) {
+  let { category } = req.query;
+  let total = await productModel.getProductCount(category);
+  let randomProduct = [];
+  for (let i = 0; i < 9; i++) {
+    let id = Math.floor(Math.random() * total) + 1;
+    if (!randomProduct.includes(id)) randomProduct.push(id);
+  }
+  randomProduct = randomProduct.join(',');
+  console.log(randomProduct);
+  let data = await productModel.getRandomProductRecommend(category, randomProduct);
+  res.json(data);
+}
 module.exports = {
   getIndexProduct,
   getProductList,
@@ -103,4 +116,5 @@ module.exports = {
   addProductLike,
   getProductLike,
   removeProductLike,
+  getRandomProductRecommend,
 };

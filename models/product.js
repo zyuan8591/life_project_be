@@ -112,6 +112,11 @@ async function removeProductLike(user_id, id) {
   console.log('remove', result);
 }
 
+async function getRandomProductRecommend(category, randomProduct) {
+  let [data] = await pool.query(`SELECT * FROM product WHERE category = ? AND id = ? `, [category, randomProduct]);
+  return data;
+}
+
 module.exports = {
   getProductList,
   getProductCategory,
@@ -124,4 +129,5 @@ module.exports = {
   addProductLike,
   getProductLike,
   removeProductLike,
+  getRandomProductRecommend,
 };
