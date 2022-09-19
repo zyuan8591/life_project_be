@@ -3,8 +3,11 @@ const router = express.Router();
 const productController = require('../controllers/product');
 const authMiddleware = require('../middlewares/auth');
 
+// GET /products/index
+router.get('/index', productController.getIndexProduct);
+
 // GET /products
-router.get('/', productController.getProductList);
+router.get('/', authMiddleware.checkLogin, productController.getProductList);
 
 // GET /products/category
 router.get('/category', productController.getProductCategory);
@@ -25,6 +28,6 @@ router.get('/:id/productComment', productController.getProductComment);
 // POST /products/1/comment
 router.post('/:id/comment', authMiddleware.checkLogin, productController.writeProductComment);
 
-router.post('/like', authMiddleware.checkLogin, productController.writeProductComment);
+router.post('/like', authMiddleware.checkLogin, productController.addProductLike);
 
 module.exports = router;

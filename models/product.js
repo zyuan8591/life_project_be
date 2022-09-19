@@ -56,23 +56,23 @@ async function getProductList(productName = '', productCate, perPage, offset, br
 
 async function getProductCategory() {
   let data = await pool.query('SELECT * FROM product_category');
-  console.log(data[0]);
+  // console.log(data[0]);
   return data[0];
 }
 
 async function getProductById(id) {
   let [data] = await pool.query(
-    `SELECT product.*, product_category.name AS product_category_name, company.name AS brand FROM product JOIN product_category ON product.category = product_category.id JOIN company ON product.company_id = company.id WHERE product.id = (?)`,
+    `SELECT product.*, product_category.name AS product_category_name, company.name AS brand FROM product JOIN product_category ON product.category = product_category.id JOIN company ON product.company_id = company.id WHERE product.id in (?)`,
     [id]
   );
-  console.log(data);
+  // console.log(data);
   return data;
 }
 
 async function getBrandList(brand) {
-  console.log(brand);
+  // console.log(brand);
   let [data] = await pool.query(`SELECT * FROM company WHERE name LIKE ?`, [`%${brand}%`]);
-  console.log(data);
+  // console.log(data);
   return data;
 }
 
@@ -89,8 +89,8 @@ async function getProductComment(id) {
   return data;
 }
 
-async function writeProductComment(user_id, comment, id, time, star) {
-  let result = await pool.execute(`INSERT INTO product_comment (user_id, comment, product_id, create_time, star) VALUES (?, ?, ?, ?, ?)`, [user_id, comment, id, time, star]);
+async function writeProductComment(user_id, writeComment, id, time, star) {
+  let result = await pool.execute(`INSERT INTO product_comment (user_id, comment, product_id, create_time, star) VALUES (?, ?, ?, ?, ?)`, [user_id, writeComment, id, time, star]);
   console.log(result);
 }
 
