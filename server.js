@@ -4,6 +4,35 @@ const app = express();
 const cors = require('cors');
 const port = process.env.SERVER_PORT || 3001;
 const path = require('path');
+const moment = require('moment');
+
+// socket.io
+const http = require('http');
+const server = http.createServer(app);
+const { Server } = require('socket.io');
+const io = new Server(server, {
+  cors: {
+    origin: ['http://localhost:3000'],
+    credentials: true,
+  },
+});
+
+// client 連線的 >> connection 事件
+io.on('connection', (socket) => {
+  console.log('socket: a user connected');
+  socket.on('disconnect', () => {
+    console.log('socket: user disconnected');
+  });
+  socket.on('name', (name) => {
+    console.log('socket: name from name', name);
+  });
+  // socket 「聽」MFEE27
+  socket.on('life', (msg) => {
+    console.log('socket: msg from MFEE27', msg);
+    socket.broadcast.emit('chat', msg);
+  });
+});
+
 // 啟用session
 const expressSession = require('express-session');
 // 把 session 存在硬碟中
@@ -26,10 +55,12 @@ app.use(
 const recipe = require('./routers/recipe');
 const news = require('./routers/news');
 const signup = require('./routers/signup');
+const picnic = require('./routers/picnic');
 const camping = require('./routers/camping');
 const map = require('./routers/map');
 const login = require('./routers/login');
 const user = require('./routers/user');
+const product = require('./routers/product');
 const userUpdata = require('./routers/userUpdata');
 
 const corsOptions = {
@@ -40,17 +71,23 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use((req, res, next) => {
+  console.log(`Now：${moment().format('YYYY-MM-DD h:mm:ss')}`);
+  next();
+});
 //設置靜態檔案
 app.use(express.static(path.join(__dirname, 'public')));
 // middleware
 app.use('/api/1.0/recipes', recipe);
 app.use('/api/1.0/news', news);
 app.use('/api/1.0/signup', signup);
+app.use('/api/1.0/picnic', picnic);
 app.use('/api/1.0/camping', camping);
 app.use('/api/1.0/map', map);
 app.use('/api/1.0/', login);
 app.use('/api/1.0/user', user);
 app.use('/api/1.0/userUpdata', userUpdata);
+app.use('/api/1.0/products', product);
 
 // server running
-app.listen(port, () => console.log('server is runing : ' + port));
+server.listen(port, () => console.log('server is runing : ' + port));

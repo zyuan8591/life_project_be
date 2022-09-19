@@ -2,4 +2,7 @@
 
 .env
 .vscode
-userAvatar
+
+public
+public/uploads
+public/userAvatar

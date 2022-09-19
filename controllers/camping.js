@@ -168,7 +168,7 @@ async function joinuser(req, res) {
 
   const activityState = ['即將開團', '開團中', '已成團', '開團已截止'];
 
-  const perPage = 12;
+  const perPage = 5;
   const page = req.query.page || 1;
   // total
   let [total] = await pool.execute('SELECT COUNT(*) AS total FROM activity_camping WHERE valid = 1');
@@ -181,6 +181,9 @@ async function joinuser(req, res) {
 
   let campingIds = userResult.map((users) => users.activity_id);
   // console.log(campingIds);
+  if (campingIds.length === 0) {
+    return res.json({ pagination: { total: 0, perPage: 5, page: 1, lastPage: 0 }, result: [] });
+  }
   let [joinResult] = await pool.query(`SELECT * FROM activity_camping WHERE id in (?)`, [campingIds]);
   // console.log(joinResult);
 
@@ -223,10 +226,9 @@ async function userCollects(req, res) {
   let [collectResult] = await pool.execute('SELECT * FROM activity_camping_collect WHERE user_id = ?', [req.session.user.id]);
 
   let campingIds = collectResult.map((users) => users.activity_id);
-  let idLength = campingIds.length;
-  // console.log(idLength);
-  if (idLength === 0) {
-    return res.json({ message: '該會員目前沒有收藏' });
+
+  if (campingIds.length === 0) {
+    return res.json({ pagination: { total: 0, perPage: 5, page: 1, lastPage: 0 }, result: [] });
   }
   // console.log(userId);
   // console.log('collectResult', collectResult);
