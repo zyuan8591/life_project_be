@@ -238,7 +238,7 @@ async function userCollects(req, res) {
   //
   let total = result.length;
   // console.log(total);
-  const perPage = 12;
+  const perPage = 5;
   const page = req.query.page || 1;
   let lastPage = Math.ceil(total / perPage);
   const offset = perPage * (page - 1);
