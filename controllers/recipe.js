@@ -52,7 +52,6 @@ async function getRecipeList(req, res) {
 }
 
 async function getRecipeDetail(req, res) {
-  // TODO: JOIN category
   let id = req.params.id;
   let data = await recipeModel.getRecipeById(id);
   res.json(data);
@@ -163,10 +162,28 @@ async function delUserRecipeLike(req, res) {
   res.json({ message: 'ok' });
 }
 
-async function updateRecipeValid(req, res) {
+async function updateRecipe(req, res) {
   let recipe_id = req.params.id;
+  console.log('body', req.body);
+  // only update valid to 1 or 0
   let { valid } = req.query;
-  let result = await recipeModel.updateRecipeValidById(recipe_id, valid);
+  if (valid) {
+    let result = await recipeModel.updateRecipeValidById(recipe_id, valid);
+    return res.json({ message: 'ok' });
+  }
+  // update recipe data
+  let { name, content, category, product_category } = req.body;
+  let data = { name, content, category, product_category };
+  if (req.file) data = { ...data, image: `/recipe/recipe_img/${req.file.originalname}` };
+
+  let result = await recipeModel.updateRecipe(recipe_id, data);
+  res.json({ message: 'ok' });
+  // let result = await recipeModel.updateRecipe(recipe_id, data);
+}
+
+async function delRciepMaterial(req, res) {
+  let recipe_id = req.params.id;
+  let result = await recipeModel.delRecipeMaterialById(recipe_id);
   res.json({ message: 'ok' });
 }
 
@@ -185,5 +202,6 @@ module.exports = {
   postRecipe,
   getUserRecipeLike,
   delUserRecipeLike,
-  updateRecipeValid,
+  updateRecipe,
+  delRciepMaterial,
 };

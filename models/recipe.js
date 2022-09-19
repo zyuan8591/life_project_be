@@ -184,6 +184,26 @@ async function updateRecipeValidById(recipe_id, valid) {
   return result;
 }
 
+async function updateRecipe(recipe_id, data) {
+  let { name, image, content, category, product_category } = data;
+  let sql = 'UPDATE recipe SET name = ?, content = ?, category = ?, product_category = ?';
+  let sqlParams = [name, content, category, product_category];
+  // update image or not
+  if (image) {
+    sql += ', image = ?';
+    sqlParams.push(image);
+  }
+  sql += ' WHERE id = ?';
+  sqlParams.push(recipe_id);
+  let result = await pool.execute(sql, sqlParams);
+  return result;
+}
+
+async function delRecipeMaterialById(recipe_id) {
+  let result = await pool.execute('DELETE FROM recipe_material WHERE recipe_id = ?', [recipe_id]);
+  return result;
+}
+
 module.exports = {
   getRecipeCount,
   getRecipeList,
@@ -203,4 +223,6 @@ module.exports = {
   getRecipeLikeByUserId,
   delRecipeLike,
   updateRecipeValidById,
+  delRecipeMaterialById,
+  updateRecipe,
 };
