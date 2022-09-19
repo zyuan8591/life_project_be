@@ -81,4 +81,11 @@ router.put('/password', reqistetRules, async (req, res) => {
   await pool.execute('UPDATE users SET password=? WHERE id=?', [hashPassword, req.session.user.id]);
   res.json('密碼修改成功');
 });
+
+router.put('/forgotpassword', reqistetRules, async (req, res) => {
+  let hashPassword = await argon2.hash(req.body.newPassword, 10);
+  await pool.execute('UPDATE users SET password=? WHERE id=?', [hashPassword, req.session.member.id]);
+  res.json('密碼修改成功');
+});
+
 module.exports = router;

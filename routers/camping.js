@@ -30,7 +30,7 @@ router.get('/userCollect', authMid.checkLogin, campingController.userCollects);
 router.post('/campingJoin/:campingId', authMid.checkLogin, campingController.postCampingJoin);
 
 router.delete('/campingJoin/:campingId', authMid.checkLogin, campingController.postDeleteJoin);
-router.get('/getUserJoin/:campingId', campingController.joinuser);
+router.get('/getUserJoin/:campingId', authMid.checkLogin, campingController.joinuser);
 router.get('/:campingId', campingController.getCampingDetail);
 
 module.exports = router;
