@@ -100,9 +100,10 @@ async function addProductLike(user_id, id) {
 }
 
 async function getProductLike(user_id) {
-  let [data] = await pool.query(`SELECT product_like.*, product.name, product.img FROM product_like JOIN product_like ON product_like.product_id = product.id WHERE user_id = ? `, [
+  let [data] = await pool.query(`SELECT product_like.*, product.name, product.img FROM product_like JOIN product ON product_like.product_id = product.id WHERE user_id = ? `, [
     user_id,
   ]);
+  console.log(user_id);
   return data;
 }
 

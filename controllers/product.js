@@ -63,7 +63,7 @@ async function writeProductComment(req, res) {
   let id = req.params.id;
   let user_id = req.session.user.id;
   let { writeComment, star } = req.body;
-  let time = moment().format('YYYY-MM-DD h:mm:ss');
+  let time = moment().format();
   productModel.writeProductComment(user_id, writeComment, id, time, star);
   res.json({ message: 'ok' });
 }
