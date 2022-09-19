@@ -106,4 +106,8 @@ router.post('/:id/step', authMiddleware.checkLogin, stepUploader.array('img'), r
 // DELETE like /api/1.0/recipes/5/like
 router.delete('/:id/like', authMiddleware.checkLogin, recipeController.delUserRecipeLike);
 
+// PUT valid /api/1.0/recipes/5?valid=0
+router.put('/:id', recipeController.updateRecipeValid);
+// router.put('/:id', authMiddleware.checkLogin, recipeController.updateRecipeValid);
+
 module.exports = router;

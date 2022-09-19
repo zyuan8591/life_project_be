@@ -87,7 +87,6 @@ async function getRecipeList(sort, user, name, perPage, offset, recipeId, recipe
       [`%${name}%`, perPage, offset]
     );
   }
-  console.log(data[0]);
   return data[0];
 }
 
@@ -180,6 +179,11 @@ async function delRecipeLike(user_id, recipe_id) {
   console.log(result);
 }
 
+async function updateRecipeValidById(recipe_id, valid) {
+  let result = await pool.execute('UPDATE recipe SET valid = ? WHERE id = ?', [valid, recipe_id]);
+  return result;
+}
+
 module.exports = {
   getRecipeCount,
   getRecipeList,
@@ -198,4 +202,5 @@ module.exports = {
   postRecipe,
   getRecipeLikeByUserId,
   delRecipeLike,
+  updateRecipeValidById,
 };

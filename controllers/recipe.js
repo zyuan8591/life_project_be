@@ -163,6 +163,13 @@ async function delUserRecipeLike(req, res) {
   res.json({ message: 'ok' });
 }
 
+async function updateRecipeValid(req, res) {
+  let recipe_id = req.params.id;
+  let { valid } = req.query;
+  let result = await recipeModel.updateRecipeValidById(recipe_id, valid);
+  res.json({ message: 'ok' });
+}
+
 module.exports = {
   getRecipeList,
   getRecipeDetail,
@@ -178,4 +185,5 @@ module.exports = {
   postRecipe,
   getUserRecipeLike,
   delUserRecipeLike,
+  updateRecipeValid,
 };
