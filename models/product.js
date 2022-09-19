@@ -103,8 +103,13 @@ async function getProductLike(user_id) {
   let [data] = await pool.query(`SELECT product_like.*, product.name, product.img FROM product_like JOIN product ON product_like.product_id = product.id WHERE user_id = ? `, [
     user_id,
   ]);
-  console.log(user_id);
+  console.log('getLike', user_id);
   return data;
+}
+
+async function removeProductLike(user_id, id) {
+  let result = await pool.query(`DELETE FROM product_like WHERE user_id = ? AND product_id = ?`, [user_id, id]);
+  console.log('remove', result);
 }
 
 module.exports = {
@@ -118,4 +123,5 @@ module.exports = {
   writeProductComment,
   addProductLike,
   getProductLike,
+  removeProductLike,
 };

@@ -27,10 +27,11 @@ router.get('/:id/detailImg', productController.getProductDetailImg);
 // GET /products/1/comment
 router.get('/:id/productComment', productController.getProductComment);
 
-
 // POST /products/1/comment
 router.post('/:id/comment', authMiddleware.checkLogin, productController.writeProductComment);
 
 router.post('/addLike', authMiddleware.checkLogin, productController.addProductLike);
+
+router.delete('/:id/removeLike', authMiddleware.checkLogin, productController.removeProductLike);
 
 module.exports = router;
