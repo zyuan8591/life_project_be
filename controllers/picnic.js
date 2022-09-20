@@ -32,14 +32,6 @@ async function getPicnicList(req, res) {
     default:
   }
   // console.log('sortSql', sortSql);
-  // let todayDate = Number(moment().format('YYYYMMDD'));
-  // console.log('todayDate', todayDate);
-  // let [commingDateToStartDate] = await pool.execute(
-  //   'UPDATE activity_pincnic_official SET activity_state = 2 WHERE todayDate < start_date AND todayDate < end_date AND activity_state = 1'
-  // );
-  // let [satrtDateToEndDate] = await pool.execute(
-  //   'UPDATE activity_pincnic_official SET activity_state = 4 WHERE todayDate > start_date AND todayDate > end_date AND activity_state = 2'
-  // );
 
   let filterBtn = filterState ? `AND activity_picnic_state.id = ${filterState}` : '';
   let filterPrice = minPrice || maxPrice ? `AND (price BETWEEN ${minPrice} AND ${maxPrice})` : '';
@@ -60,24 +52,34 @@ async function getPicnicList(req, res) {
   // console.log(typeof req.query.filterState);
 
   let [data] = await pool.execute(
-    `SELECT activity_pincnic_official.* , activity_picnic_state.activity_state , activity_picnic_location.location FROM activity_pincnic_official JOIN activity_picnic_state ON activity_pincnic_official.activity_state = activity_picnic_state.id JOIN activity_picnic_location ON activity_pincnic_official.location = activity_picnic_location.id WHERE valid = 1 ${filterBtn} ${filterPrice} ${filterJoinPeople} ${filterDate} AND activity_pincnic_official.picnic_title LIKE ? ORDER BY ${sortSql} LIMIT ? OFFSET ?`,
+    `SELECT activity_pincnic_official.* , activity_picnic_state.activity_state , activity_picnic_location.location, IfNULL(c.people,0) AS currentJoin FROM activity_pincnic_official JOIN activity_picnic_state ON activity_pincnic_official.activity_state = activity_picnic_state.id JOIN activity_picnic_location ON activity_pincnic_official.location = activity_picnic_location.id LEFT JOIN (SELECT picnic_id, COUNT(1) AS people FROM activity_picnic_official_join GROUP BY picnic_id) c ON activity_pincnic_official.id = c.picnic_id WHERE valid = 1 ${filterBtn} ${filterPrice} ${filterJoinPeople} ${filterDate} AND activity_pincnic_official.picnic_title LIKE ? ORDER BY ${sortSql} LIMIT ? OFFSET ?`,
     [`%${searchWord}%`, perPage, offset]
   );
 
-  // 報名總人數
-  for (let i = 0; i < data.length; i++) {
-    // console.log('data', data[i].id);
-    let [currentJoin] = await pool.execute(`SELECT * FROM activity_picnic_official_join WHERE picnic_id = ${data[i].id}`);
-    data[i] = { ...data[i], currentJoin: currentJoin.length };
-  }
-
-  // data.map((data) => {
-
-  //   if (data.start_date > todayDate && todayDate < data.end_date) filterState(1); // 即將開團
-  //   if (data.start_date < todayDate && todayDate > data.end_date) filterState(2); // 開團中
-  //   if (data.join_limit === data.currentJoin) filterState(3); // 開團中
-  //   if (data.start_date > todayDate && todayDate > data.end_date) filterState(4); // 開團已截止
-  // });
+  // 比對活動狀態
+  data.map(async (data) => {
+    let todayDate = Number(moment().format('YYYYMMDD'));
+    let startDate = parseInt(data.start_date.replace(/-/g, ''));
+    let endDate = parseInt(data.end_date.replace(/-/g, ''));
+    // console.log(todayDate, startDate, endDate);
+    // console.log(data.id);
+    // 狀態初始化
+    // await pool.execute(`UPDATE activity_pincnic_official SET activity_state = 1 WHERE id = ${data.id}`);
+    if (startDate <= todayDate && endDate > todayDate) {
+      // 開團中
+      await pool.execute(`UPDATE activity_pincnic_official SET activity_state = 2 WHERE id = ${data.id}`);
+    }
+    if (data.currentJoin >= 5 && data.currentJoin < data.join_limit) {
+      // 達到最低人數 變已成團
+      await pool.execute(`UPDATE activity_pincnic_official SET activity_state = 3 WHERE id = ${data.id}`);
+    }
+    if ((startDate < todayDate && endDate < todayDate) || data.currentJoin >= data.join_limit) {
+      // 開團已截止
+      await pool.execute(`UPDATE activity_pincnic_official SET activity_state = 4 WHERE id = ${data.id}`);
+    }
+    // console.log(data);
+    return data;
+  });
 
   res.json({
     pagination: {
@@ -104,7 +106,7 @@ async function getPicnicDetail(req, res) {
     data[i] = { ...data[i], currentJoin: currentJoin.length };
   }
 
-  //主辦人
+  //參加者
   let [paicipantData] = await pool.execute(
     `SELECT activity_picnic_official_join.*, users.* , activity_pincnic_official.* FROM activity_picnic_official_join
   JOIN users ON activity_picnic_official_join.user_id = users.id 
@@ -120,31 +122,74 @@ async function getPicnicDetail(req, res) {
     [officialId]
   );
   // console.log(productsData);
-  //   SELECT * FROM `users` u
-  // JOIN activity_picnic_official_join aj ON aj.user_id=u.id
-  // JOIN activity_pincnic_official a ON a.id=aj.picnic_id
-  // WHERE 1
-
   res.json({ data, paicipantData, productsData });
 }
 
 // add join
 async function postOfficialJoin(req, res) {
   let picnic = await picnicModel.getJoinId(req.params.officialId);
-  // console.log(req.params.officialId);
+  console.log(req.params.officialId);
+  console.log(picnic);
   if (!picnic) {
     return res.json({ message: '查無此活動' });
   }
+
   await picnicModel.addJoinOfficial(req.session.user.id, req.params.officialId);
+  let [count] = await picnicModel.getJoinCount(req.params.officialId);
+  // console.log('count', count);
+  // console.log('count people', count.people);
+  // 成團標準、成團上限
+  let data = await picnicModel.getJoinId(req.params.officialId);
+  // console.log('join_limit', data.join_limit);
+  if (count.people >= data.join_limit) {
+    // 變已截止（人數已滿）
+    await pool.execute(`UPDATE activity_pincnic_official SET activity_state = 4 WHERE id = ${req.params.officialId}`);
+  } else if (count.people >= 5) {
+    // 變已成團
+    await pool.execute(`UPDATE activity_pincnic_official SET activity_state = 3 WHERE id = ${req.params.officialId}`);
+  }
+
   let getJoin = await picnicModel.getJoinOfficial(req.session.user.id);
-  res.json({ message: 'ok', getJoin });
+  res.json({ message: 'ok', getJoin, count, data });
+  // res.json({ message: 'ok', getJoin });
 }
 
-//
+// delete join
 async function postOfficiaDeleteJoin(req, res) {
   await picnicModel.deleteJoinOfficial(req.session.user.id, req.params.officialId);
+  let count = await picnicModel.getJoinCount(req.params.officialId);
+  let data = await picnicModel.getJoinId(req.params.officialId);
+  // console.log('join_limit', data.join_limit);
+  // 取消後未達成團人數
+  if (count.people < 5) {
+    // 成團 -> 開團 變開團中(未達最低人數)
+    await pool.execute(`UPDATE activity_pincnic_official SET activity_state = 2 WHERE id = ${req.params.officialId}`);
+  } else if (count.people < data.join_limit) {
+    // 已截止 -> 已成團 變成團中(未達最高上限人數)
+    await pool.execute(`UPDATE activity_pincnic_official SET activity_state = 3 WHERE id = ${req.params.officialId}`);
+  }
+
   let getJoin = await picnicModel.getJoinOfficial(req.session.user.id);
   res.json({ message: 'ok delete', getJoin });
+}
+
+// add collect
+async function postOfficialCollectJoin(req, res) {
+  let picnic = await picnicModel.getCollectId(req.params.officialId);
+  if (!picnic) {
+    return res.json({ message: '查無此活動' });
+  }
+  await picnicModel.addCollectOfficial(req.session.user.id, req.params.officialId);
+  let getCollect = await picnicModel.getCollectOfficial(req.session.user.id); //回覆最新所有收藏資料
+  res.json({ message: '加入收藏', getCollect });
+}
+// delete collect
+async function postOfficiaDeleteCollect(req, res) {
+  console.log(req.session);
+  await picnicModel.delCollectOfficial(req.session.user.id, req.params.officialId);
+  console.log(req.params.officialId);
+  let getCollect = await picnicModel.getCollectOfficial(req.session.user.id); //回覆最新所有收藏資料
+  res.json({ message: '取消收藏', getCollect });
 }
 
 // ----------------------- 開團活動 ----------------------
@@ -251,22 +296,72 @@ async function postPicnicJoin(req, res) {
   // 新增後回傳最新資料
   await picnicModel.addJoinPicnic(req.session.user.id, req.params.groupId);
   let getJoin = await picnicModel.getJoinPicnic(req.session.user.id);
-  res.json({ message: 'ok', getJoin });
+  res.json({ message: '新增成功', getJoin });
 }
 
-// delete
+// delete join
 async function postDeleteJoin(req, res) {
   await picnicModel.deleteJoinPicnic(req.session.user.id, req.params.groupId);
   let getJoin = await picnicModel.getJoinPicnic(req.session.user.id);
-  res.json({ message: 'ok', getJoin });
+  res.json({ message: '取消成功', getJoin });
 }
+// add collect
+async function postPrivateCollectJoin(req, res) {
+  let picnic = await picnicModel.getCollectPrivateId(req.params.groupId);
+  if (!picnic) {
+    return res.json({ message: '查無此活動' });
+  }
+  await picnicModel.addCollectPrivate(req.session.user.id, req.params.groupId);
+  let getCollect = await picnicModel.getCollectPrivate(req.session.user.id); //回覆最新所有收藏資料
+  res.json({ message: '加入收藏', getCollect });
+}
+
+// delete collect
+async function postPrivateDeleteCollect(req, res) {
+  await picnicModel.delCollectPrivate(req.session.user.id, req.params.groupId);
+  let getCollect = await picnicModel.getCollectPrivate(req.session.user.id); //回覆最新所有收藏資料
+  res.json({ message: '取消收藏', getCollect });
+}
+
+// from data
+async function getFormData(req, res) {
+  console.log(req.body, req.file);
+
+  //TODO: 開團狀態處理？給預設值?
+  let filename = req.file ? req.file.filename : '';
+  let result = await pool.query(
+    'INSERT INTO activity_picnic_private (location ,address, activity_date, join_limit, picnic_title, intr, start_date, end_date, img1, img2,create_user_id, activity_state, valid) VALUES (?,?,?,?,?,?,?,?,?,?,?,1,1)',
+    [
+      req.body.location,
+      req.body.address,
+      req.body.activityDate,
+      req.body.joinLimit,
+      req.body.title,
+      req.body.intr,
+      req.body.startDate,
+      req.body.endDate,
+      filename,
+      filename,
+      req.session.user.id,
+    ]
+  );
+
+  res.json({ Message: '新增成功' });
+  console.log('INSERT new result', result);
+}
+
 module.exports = {
   getPicnicList,
   getPicnicDetail,
   postOfficialJoin,
   postOfficiaDeleteJoin,
+  postOfficialCollectJoin,
+  postOfficiaDeleteCollect,
   getPrivateList,
   getPrivateDetail,
   postPicnicJoin,
   postDeleteJoin,
+  postPrivateCollectJoin,
+  postPrivateDeleteCollect,
+  getFormData,
 };

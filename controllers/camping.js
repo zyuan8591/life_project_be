@@ -54,7 +54,7 @@ async function getCampingList(req, res) {
   );
   totalResult = totalResult.map((d) => {
     let todayDate = Number(moment().format('YYYYMMDD'));
-    let startDate = start_date
+    let startDate = parseInt(d.start_date.replace(/-/g, ''));
     let endDate = parseInt(d.end_date.replace(/-/g, ''));
     let state = '';
     let count = d.pepcount;

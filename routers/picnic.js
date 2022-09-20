@@ -1,15 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../utils/db');
+// const pool = require('../utils/db');
 const picnicController = require('../controllers/picnic');
 const authMid = require('../middlewares/auth');
 const picnicModel = require('../models/picnic');
+const path = require('path');
+const multer = require('multer'); //第三方套件
 
 // --------- 官方活動 ---------
 // 首頁列表
 router.get('/official', picnicController.getPicnicList);
 
-// get includes
+// get includes join 此會員所有加入
 router.get('/official/officialAllJoin', authMid.checkLogin, async (req, res) => {
   let getJoin = await picnicModel.getJoinOfficial(req.session.user.id);
   // console.log(req.session.user.id);
@@ -21,6 +23,19 @@ router.post('/officialAddJoin/:officialId', authMid.checkLogin, picnicController
 
 // delete join
 router.delete('/officialJoin/:officialId', authMid.checkLogin, picnicController.postOfficiaDeleteJoin);
+
+// get includes collect 此會員所有收藏
+router.get('/official/officialAllCollect', authMid.checkLogin, async (req, res) => {
+  let getCollect = await picnicModel.getCollectOfficial(req.session.user.id);
+  // console.log(req.session.user.id);
+  res.json(getCollect);
+});
+
+// add collect
+router.post('/collectAddJoin/:officialId', authMid.checkLogin, picnicController.postOfficialCollectJoin);
+
+// delete collect
+router.delete('/collectDelJoin/:officialId', authMid.checkLogin, picnicController.postOfficiaDeleteCollect);
 
 // 詳細頁
 router.get('/official/:officialId', picnicController.getPicnicDetail);
@@ -41,13 +56,23 @@ router.post('/groupAddJoin/:groupId', authMid.checkLogin, picnicController.postP
 // delete join
 router.delete('/groupJoin/:groupId', authMid.checkLogin, picnicController.postDeleteJoin);
 
+// get includes collect 此會員所有收藏
+router.get('/group/privateAllCollect', authMid.checkLogin, async (req, res) => {
+  let getCollect = await picnicModel.getCollectPrivate(req.session.user.id);
+  // console.log(req.session.user.id);
+  res.json(getCollect);
+});
+
+// add collect
+router.post('/collectGroupAddJoin/:groupId', authMid.checkLogin, picnicController.postPrivateCollectJoin);
+
+// delete collect
+router.delete('/collectGroupDelJoin/:groupId', authMid.checkLogin, picnicController.postPrivateDeleteCollect);
+
 // 開團列表詳細頁
 router.get('/group/:groupId', picnicController.getPrivateDetail);
 
-// 開團表單
-const path = require('path');
-const multer = require('multer'); //第三方套件
-// const { log } = require('console');
+// 建立活動表單
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, path.join(__dirname, '..', 'public', 'picnic'));
@@ -72,30 +97,6 @@ const uploader = multer({
   },
 });
 
-router.post('/create', uploader.single('image'), async (req, res) => {
-  console.log(req.body, req.file);
-
-  //TODO: 開團狀態處理？給預設值?
-  let filename = req.file ? req.file.filename : '';
-  let result = await pool.query(
-    'INSERT INTO activity_picnic_private (location ,address, activity_date, join_limit, picnic_title, intr, start_date, end_date, img1, img2,create_user_id, activity_state, valid) VALUES (?,?,?,?,?,?,?,?,?,?,?,1,1)',
-    [
-      req.body.location,
-      req.body.address,
-      req.body.activityDate,
-      req.body.joinLimit,
-      req.body.title,
-      req.body.intr,
-      req.body.startDate,
-      req.body.endDate,
-      filename,
-      filename,
-      req.session.user.id,
-    ]
-  );
-
-  res.json({ Message: 'OK' });
-  console.log('INSERT new result', result);
-});
+router.post('/create', uploader.single('image'), picnicController.getFormData);
 
 module.exports = router;
