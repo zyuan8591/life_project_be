@@ -15,6 +15,7 @@ async function getRecipeList(req, res) {
   let searchLike = [];
   if (req.session.user && userLike === 'true') {
     searchLike = await recipeModel.getRecipeLikeByUser(req.session.user.id);
+    if (searchLike.length === 0) return res.json({ pagination: { total: 0, perPage: 0, page: 0, lastPage: 0 }, data: [] });
     console.log(req.session.user.id);
     console.log('searchlike', searchLike);
   }
