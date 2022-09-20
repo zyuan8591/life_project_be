@@ -20,16 +20,15 @@ async function getProductCount(productName, productCate, brand, smallThan, bigge
 async function getProductList(productName = '', productCate, perPage, offset, brand, smallThan, biggerThan, sort) {
   // sort
   let sortSql = null;
-  switch (sort) {
-    case '1':
-      sortSql = 'ORDER BY id DESC';
-      break;
-    case '2':
-      sortSql = 'ORDER BY created_time DESC';
-      break;
-    default:
-      sortSql = '';
-      break;
+
+  if (sort == 1) {
+    sortSql = 'ORDER BY id DESC';
+  } else if (sort == 2) {
+    sortSql = 'ORDER BY created_time DESC';
+  } else if (sort == 3) {
+    sortSql = 'ORDER BY company_id ASC';
+  } else {
+    sortSql = '';
   }
   // category
   let productCateSql = '';
@@ -120,7 +119,6 @@ async function getRandomProductNumber(category) {
 }
 
 async function getRandomProductRecommend(randomProductNumber) {
-
   let [data] = await pool.query(`SELECT * FROM product WHERE id in (?) `, [randomProductNumber]);
 
   return data;
