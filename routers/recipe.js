@@ -113,6 +113,9 @@ router.delete('/:id/material', authMiddleware.checkLogin, recipeController.delRc
 router.put('/:id', uploader.single('image'), authMiddleware.checkLogin, recipeController.updateRecipe);
 
 // PUT valid /api/1.0/recipes/5?valid=0
-router.put('/:id/material', authMiddleware.checkLogin, recipeController.updateRecipe);
+// router.put('/:id/material', authMiddleware.checkLogin, recipeController.updateRecipe);
+
+// PUT step /api/1.0/recipe/5/step
+router.put('/:id/step', authMiddleware.checkLogin, stepUploader.array('img'), recipeController.updateRecipeStep);
 
 module.exports = router;

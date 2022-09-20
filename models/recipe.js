@@ -45,15 +45,12 @@ async function getRecipeList(sort, user, name, perPage, offset, recipeId, recipe
 
   // filter for category
   let recipeCateSql = '';
-  console.log(parseInt(recipeCate));
   parseInt(recipeCate) ? (recipeCateSql = `AND recipe.category = ${recipeCate}`) : '';
   let productCateSql = '';
   parseInt(productCate) ? (productCateSql = `AND recipe.product_category = ${productCate}`) : '';
 
   // random recipe
   let randomSql = randomRecipe ? `AND recipe.id in (${randomRecipe})` : '';
-
-  console.log('recipeId', recipeId);
 
   let data = null;
   if (recipeId.length !== 0) {
@@ -139,12 +136,12 @@ async function getMaterialList() {
 
 async function postCommentById(user_id, comment, id, time) {
   let result = await pool.execute('INSERT INTO recipe_comment (user_id, content, recipe_id, create_time) VALUES (?, ?, ?, ?)', [user_id, comment, id, time]);
-  console.log(result[0].insertId);
+  return result[0].insertId;
 }
 
 async function postLikeById(user_id, id) {
   let result = await pool.execute('INSERT INTO recipe_like (user_id, recipe_id) VALUES (?, ?)', [user_id, id]);
-  console.log(result);
+  return result;
 }
 
 async function getRecipeLikeByUser(user_id) {
@@ -161,12 +158,12 @@ async function postRecipe(data) {
 
 async function postRecipeStepById(data) {
   let result = await pool.query('INSERT INTO recipe_step (recipe_id, step, img, content) VALUES ?', [data]);
-  console.log(result);
+  return result;
 }
 
 async function postRecipeMaterialById(data) {
   let result = await pool.query('INSERT INTO recipe_material (recipe_id, name, quantity) VALUES ?', [data]);
-  console.log(result);
+  return result;
 }
 
 async function getRecipeLikeByUserId(id) {
@@ -176,7 +173,7 @@ async function getRecipeLikeByUserId(id) {
 
 async function delRecipeLike(user_id, recipe_id) {
   let result = await pool.query('DELETE FROM recipe_like WHERE recipe_id = ? AND user_id = ?', [recipe_id, user_id]);
-  console.log(result);
+  return result;
 }
 
 async function updateRecipeValidById(recipe_id, valid) {
@@ -196,6 +193,24 @@ async function updateRecipe(recipe_id, data) {
   sql += ' WHERE id = ?';
   sqlParams.push(recipe_id);
   let result = await pool.execute(sql, sqlParams);
+  return result;
+}
+
+// put recipe step content or image
+async function updateRecipeStep(recipe_id, content, image, step) {
+  let sql = 'UPDATE recipe_step SET';
+  let sqlParams = [];
+  if (content) {
+    sql += ' content = ?';
+    sqlParams.push(content);
+  } else if (image) {
+    sql += ' img = ?';
+    sqlParams.push(image);
+  }
+  sql += ' WHERE recipe_id = ? AND step = ?';
+  sqlParams.push(recipe_id, step);
+
+  let result = pool.execute(sql, sqlParams);
   return result;
 }
 
@@ -225,4 +240,5 @@ module.exports = {
   updateRecipeValidById,
   delRecipeMaterialById,
   updateRecipe,
+  updateRecipeStep,
 };

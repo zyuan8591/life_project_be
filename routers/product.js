@@ -7,7 +7,7 @@ const authMiddleware = require('../middlewares/auth');
 router.get('/index', productController.getIndexProduct);
 
 // GET /products
-router.get('/', authMiddleware.checkLogin, productController.getProductList);
+router.get('/', productController.getProductList);
 
 // GET /products/category
 router.get('/category', productController.getProductCategory);

@@ -1,5 +1,6 @@
 const recipeModel = require('../models/recipe');
 const moment = require('moment');
+const pool = require('../utils/db');
 
 async function getRecipeList(req, res) {
   let { sort, user, name = '', page, perPage, materialName = '', recipeCate, productCate, random, userLike } = req.query;
@@ -187,6 +188,29 @@ async function delRciepMaterial(req, res) {
   res.json({ message: 'ok' });
 }
 
+async function updateRecipeStep(req, res) {
+  let recipe_id = req.params.id;
+  let { mode } = req.query;
+  console.log('mode', mode);
+  // put content
+  let { putContent } = req.body;
+  if (mode === 'content') {
+    putContent.map(async (d) => {
+      if (d[0] === '' || d[1] === '') return;
+      await recipeModel.updateRecipeStep(recipe_id, d[1], '', d[0]);
+    });
+  }
+  // put image
+  if (mode === 'image') {
+    let files = req.files;
+    let { step } = req.body;
+    for (let i = 0; i < step.length; i++) {
+      await recipeModel.updateRecipeStep(recipe_id, '', `/recipe/recipe_step/${files[i].originalname}`, step[i]);
+    }
+  }
+  res.json({ message: 'ok' });
+}
+
 module.exports = {
   getRecipeList,
   getRecipeDetail,
@@ -204,4 +228,5 @@ module.exports = {
   delUserRecipeLike,
   updateRecipe,
   delRciepMaterial,
+  updateRecipeStep,
 };
