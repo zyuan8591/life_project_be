@@ -100,9 +100,10 @@ async function addProductLike(user_id, id) {
 }
 
 async function getProductLike(user_id) {
-  let [data] = await pool.query(`SELECT product_like.*, product.name, product.img FROM product_like JOIN product ON product_like.product_id = product.id WHERE user_id = ? `, [
-    user_id,
-  ]);
+  let [data] = await pool.query(
+    `SELECT product_like.*, product.name, product.img, product.color FROM product_like JOIN product ON product_like.product_id = product.id WHERE user_id = ? `,
+    [user_id]
+  );
   console.log('getLike', user_id);
   return data;
 }
@@ -112,8 +113,16 @@ async function removeProductLike(user_id, id) {
   console.log('remove', result);
 }
 
-async function getRandomProductRecommend(category, randomProduct) {
-  let [data] = await pool.query(`SELECT * FROM product WHERE category = ? AND id = ? `, [category, randomProduct]);
+async function getRandomProductNumber(category) {
+  let [randomNumber] = await pool.query(`SELECT id FROM product WHERE category = ?`, [category]);
+
+  return randomNumber;
+}
+
+async function getRandomProductRecommend(randomProductNumber) {
+
+  let [data] = await pool.query(`SELECT * FROM product WHERE id in (?) `, [randomProductNumber]);
+
   return data;
 }
 
@@ -129,5 +138,6 @@ module.exports = {
   addProductLike,
   getProductLike,
   removeProductLike,
+  getRandomProductNumber,
   getRandomProductRecommend,
 };

@@ -93,15 +93,27 @@ async function removeProductLike(req, res) {
 
 async function getRandomProductRecommend(req, res) {
   let { category } = req.query;
-  let total = await productModel.getProductCount(category);
+  // console.log('category', category);
+  // let total = await productModel.getProductCount(category);
+  // console.log('total', total);
+  let randomNumberData = await productModel.getRandomProductNumber(category);
+  let randomNumber = [];
+  randomNumberData.map((v) => {
+    randomNumber.push(v.id);
+  });
+
   let randomProduct = [];
+  let randomProductNumber = [];
   for (let i = 0; i < 9; i++) {
-    let id = Math.floor(Math.random() * total) + 1;
-    if (!randomProduct.includes(id)) randomProduct.push(id);
+    while (randomProduct.length < i + 1) {
+      let choose = Math.floor(Math.random() * randomNumber.length);
+      if (!randomProduct.includes(choose)) randomProduct.push(choose);
+      if (!randomProductNumber.includes(randomNumber[choose])) randomProductNumber.push(randomNumber[choose]);
+    }
   }
   randomProduct = randomProduct.join(',');
-  console.log(randomProduct);
-  let data = await productModel.getRandomProductRecommend(category, randomProduct);
+  console.log(randomProductNumber);
+  let data = await productModel.getRandomProductRecommend(randomProductNumber);
   res.json(data);
 }
 module.exports = {

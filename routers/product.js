@@ -17,6 +17,10 @@ router.get('/brand', productController.getBrandList);
 
 // GET /products/like
 router.get('/like', authMiddleware.checkLogin, productController.getProductLike);
+
+// GET /products/1/recommend
+router.get('/recommend', productController.getRandomProductRecommend);
+
 // get product for id
 // GET /products/1
 router.get('/:id', productController.getProductDetail);
@@ -27,14 +31,12 @@ router.get('/:id/detailImg', productController.getProductDetailImg);
 // GET /products/1/comment
 router.get('/:id/productComment', productController.getProductComment);
 
-// GET /products/1/recommend
-router.get('/:id/recommend', productController.getRandomProductRecommend);
-
 // POST /products/1/comment
 router.post('/:id/comment', authMiddleware.checkLogin, productController.writeProductComment);
 
+// POST /products/addLike
 router.post('/addLike', authMiddleware.checkLogin, productController.addProductLike);
-
+// DELETE /products/1/removeLike
 router.delete('/:id/removeLike', authMiddleware.checkLogin, productController.removeProductLike);
 
 module.exports = router;
