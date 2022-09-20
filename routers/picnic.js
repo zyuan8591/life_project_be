@@ -7,6 +7,9 @@ const picnicModel = require('../models/picnic');
 const path = require('path');
 const multer = require('multer'); //第三方套件
 
+// 會員
+router.get('/official/member', picnicController.getMemberPicnic);
+
 // --------- 官方活動 ---------
 // 首頁列表
 router.get('/official', picnicController.getPicnicList);
@@ -40,7 +43,6 @@ router.delete('/collectDelJoin/:officialId', authMid.checkLogin, picnicControlle
 // 詳細頁
 router.get('/official/:officialId', picnicController.getPicnicDetail);
 
-router.get('official/member', picnicModel.getJoinOfficial);
 // --------- 開團活動 ---------
 // 開團首頁列表
 router.get('/group', picnicController.getPrivateList);

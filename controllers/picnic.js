@@ -2,6 +2,39 @@ const pool = require('../utils/db');
 const moment = require('moment');
 const picnicModel = require('../models/picnic');
 
+// ------ for 會員 API -------
+async function getMemberPicnic(req, res) {
+  // const userId = req.session.user.id;
+
+  const perPage = 5;
+  const page = req.query.page || 1;
+
+  let [totalData] = await pool.execute(
+    'SELECT activity_pincnic_official.* , activity_picnic_state.activity_state , activity_picnic_location.location FROM activity_pincnic_official JOIN activity_picnic_state ON activity_pincnic_official.activity_state = activity_picnic_state.id JOIN activity_picnic_location ON activity_pincnic_official.location = activity_picnic_location.id WHERE valid = 1'
+  );
+  console.log(totalData);
+
+  let total = totalData.length;
+  let lastPage = Math.ceil(total / perPage);
+  const offset = perPage * (page - 1);
+
+  let [pageData] = await pool.execute(
+    `SELECT activity_pincnic_official.* , activity_picnic_state.activity_state , activity_picnic_location.location, IfNULL(c.people,0) AS currentJoin FROM activity_pincnic_official JOIN activity_picnic_state ON activity_pincnic_official.activity_state = activity_picnic_state.id JOIN activity_picnic_location ON activity_pincnic_official.location = activity_picnic_location.id LEFT JOIN (SELECT picnic_id, COUNT(1) AS people FROM activity_picnic_official_join GROUP BY picnic_id) c ON activity_pincnic_official.id = c.picnic_id WHERE valid = 1 LIMIT ? OFFSET ?`,
+    [perPage, offset]
+  );
+  // picnicModel.getJoinOfficial(req.session.user.id, req.params.officialId);
+
+  res.json({
+    pagination: {
+      total,
+      perPage,
+      page,
+      lastPage,
+    },
+    pageData,
+  });
+}
+
 //----------------------- 官方活動 ------------------------
 async function getPicnicList(req, res) {
   //   console.log(req.query);
@@ -64,7 +97,7 @@ async function getPicnicList(req, res) {
     // console.log(todayDate, startDate, endDate);
     // console.log(data.id);
     // 狀態初始化
-    // await pool.execute(`UPDATE activity_pincnic_official SET activity_state = 1 WHERE id = ${data.id}`);
+    await pool.execute(`UPDATE activity_pincnic_official SET activity_state = 1 WHERE id = ${data.id}`);
     if (startDate <= todayDate && endDate > todayDate) {
       // 開團中
       await pool.execute(`UPDATE activity_pincnic_official SET activity_state = 2 WHERE id = ${data.id}`);
@@ -364,4 +397,5 @@ module.exports = {
   postPrivateCollectJoin,
   postPrivateDeleteCollect,
   getFormData,
+  getMemberPicnic,
 };
