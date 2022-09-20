@@ -2,7 +2,7 @@ const productModel = require('../models/product');
 const moment = require('moment');
 
 async function getIndexProduct(req, res) {
-  let id = [1, 33, 35, 44, 46, 71, 87, 94, 104, 113, 118, 128, 212];
+  let id = [28, 24, 26, 32, 39, 69, 57, 80, 75, 117, 140, 123];
   let result = await productModel.getProductById(id);
   res.json(result);
 }

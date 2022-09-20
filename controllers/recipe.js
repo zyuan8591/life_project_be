@@ -1,5 +1,6 @@
 const recipeModel = require('../models/recipe');
 const moment = require('moment');
+const pool = require('../utils/db');
 
 async function getRecipeList(req, res) {
   let { sort, user, name = '', page, perPage, materialName = '', recipeCate, productCate, random, userLike } = req.query;
@@ -52,7 +53,6 @@ async function getRecipeList(req, res) {
 }
 
 async function getRecipeDetail(req, res) {
-  // TODO: JOIN category
   let id = req.params.id;
   let data = await recipeModel.getRecipeById(id);
   res.json(data);
@@ -163,6 +163,54 @@ async function delUserRecipeLike(req, res) {
   res.json({ message: 'ok' });
 }
 
+async function updateRecipe(req, res) {
+  let recipe_id = req.params.id;
+  console.log('body', req.body);
+  // only update valid to 1 or 0
+  let { valid } = req.query;
+  if (valid) {
+    let result = await recipeModel.updateRecipeValidById(recipe_id, valid);
+    return res.json({ message: 'ok' });
+  }
+  // update recipe data
+  let { name, content, category, product_category } = req.body;
+  let data = { name, content, category, product_category };
+  if (req.file) data = { ...data, image: `/recipe/recipe_img/${req.file.originalname}` };
+
+  let result = await recipeModel.updateRecipe(recipe_id, data);
+  res.json({ message: 'ok' });
+  // let result = await recipeModel.updateRecipe(recipe_id, data);
+}
+
+async function delRciepMaterial(req, res) {
+  let recipe_id = req.params.id;
+  let result = await recipeModel.delRecipeMaterialById(recipe_id);
+  res.json({ message: 'ok' });
+}
+
+async function updateRecipeStep(req, res) {
+  let recipe_id = req.params.id;
+  let { mode } = req.query;
+  console.log('mode', mode);
+  // put content
+  let { putContent } = req.body;
+  if (mode === 'content') {
+    putContent.map(async (d) => {
+      if (d[0] === '' || d[1] === '') return;
+      await recipeModel.updateRecipeStep(recipe_id, d[1], '', d[0]);
+    });
+  }
+  // put image
+  if (mode === 'image') {
+    let files = req.files;
+    let { step } = req.body;
+    for (let i = 0; i < step.length; i++) {
+      await recipeModel.updateRecipeStep(recipe_id, '', `/recipe/recipe_step/${files[i].originalname}`, step[i]);
+    }
+  }
+  res.json({ message: 'ok' });
+}
+
 module.exports = {
   getRecipeList,
   getRecipeDetail,
@@ -178,4 +226,7 @@ module.exports = {
   postRecipe,
   getUserRecipeLike,
   delUserRecipeLike,
+  updateRecipe,
+  delRciepMaterial,
+  updateRecipeStep,
 };
