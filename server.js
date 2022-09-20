@@ -62,7 +62,6 @@ const map = require('./routers/map');
 const login = require('./routers/login');
 const user = require('./routers/user');
 const product = require('./routers/product');
-const userUpdata = require('./routers/userUpdata');
 
 const corsOptions = {
   // 如果要讓 cookie 可以跨網域存取，這邊要設定 credentials
@@ -88,7 +87,6 @@ app.use('/api/1.0/camping', camping);
 app.use('/api/1.0/map', map);
 app.use('/api/1.0/', login);
 app.use('/api/1.0/user', user);
-app.use('/api/1.0/userUpdata', userUpdata);
 app.use('/api/1.0/products', product);
 
 // server running

@@ -7,8 +7,13 @@ const picnicModel = require('../models/picnic');
 const path = require('path');
 const multer = require('multer'); //第三方套件
 
-// 會員
-router.get('/official/member', picnicController.getMemberPicnic);
+// 給會員頁
+router.get('/official/member', picnicController.getMemberPicnicData);
+router.get('/official/memberJoin', picnicController.picnicOfficalJoin);
+router.get('/official/memberCollect', picnicController.picnicOffacialCollect);
+router.get('/group/member', picnicController.getMemberPicnicGroupData);
+router.get('/group/memberJoin', picnicController.picnicGroupJoin);
+router.get('/group/memberCollect', picnicController.picnicGroupCollect);
 
 // --------- 官方活動 ---------
 // 首頁列表
