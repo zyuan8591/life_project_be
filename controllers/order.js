@@ -13,9 +13,9 @@ async function getOrderPaymentList(req, res) {
 }
 
 async function getOrderList(req, res) {
-  let { page, perPage, status, sort, user } = req.query;
+  let { page, perPage, status } = req.query;
 
-  // let user = req.session.user.id;
+  let user = req.session.user.id;
 
   // pagination
   page = page ? parseInt(page) : 1;
@@ -40,8 +40,40 @@ async function getOrderList(req, res) {
 
 async function getOrderDetail(req, res) {
   let id = req.params.id;
-  let data = await orderModel.getOrderById(id);
-  res.json(data);
+  // let user = req.query.user;
+  let user = req.session.user.id;
+
+  let orderData = await orderModel.getOrders('', user, '', '', id);
+  // console.log(orderData[0]);
+  let orderInfo = orderData[0].map((v, i) => {
+    return {
+      id: v.id,
+      totalPrice: v.order_total,
+      time: v.create_time,
+      name: v.recipient_name,
+      phone: v.recipient_phone,
+      address: v.recipient_address,
+      email: v.recipient_email,
+      memo: v.memo,
+    };
+  });
+
+  let data = [{ ...orderInfo[0], product: [], picnic: [], camping: [] }];
+
+  let cartData = await orderModel.getOrderById();
+  // console.log(cartData[0]);
+  cartData[0]
+    .filter((v, i) => {
+      return v.order_id == id;
+    })
+    .map((d, i) => {
+      // console.log(d);
+      data[0].product.push({ id: d.product_id, name: d.product_name, quantity: d.quantity, price: d.product_price, img: d.product_img });
+      data[0].picnic.push({ id: d.picnic_id, title: d.picnic_title, img: d.picnic_img, price: d.picnic_price, quantity: d.quantity });
+      data[0].camping.push({ id: d.camping_id, title: d.camping_title, img: d.camping_img, price: d.camping_price, quantity: d.quantity });
+    });
+
+  console.log('data', data);
 }
 
 async function postOrder(req, res) {
