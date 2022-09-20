@@ -10,12 +10,25 @@ async function getOrderPayment() {
   return data;
 }
 
-async function getOrderCount(user) {
-  let total = await pool.query(`SELECT COUNT(*) AS total FROM orders WHERE orders.user_id = ?`, user);
-  return total;
+async function getOrderCount(user, status) {
+  let sql = 'SELECT COUNT(*) AS total FROM orders WHERE valid = 1 ';
+  let sqlParams = [];
+  if (status) {
+    sql += 'AND orders.status_id = ?';
+    sqlParams.push(status);
+  }
+
+  if (user) {
+    sql += ' AND orders.user_id = ?';
+    sqlParams.push(user);
+  }
+  console.log('sqlcount', sql);
+
+  let total = await pool.execute(sql, sqlParams);
+  return total[0][0].total;
 }
 
-async function getOrders(status, user) {
+async function getOrders(status, user, perPage, offset) {
   // console.log(status);
   // console.log(user);
   let sql =
@@ -29,12 +42,23 @@ async function getOrders(status, user) {
     sql += ' AND orders.user_id = ?';
     sqlParams.push(user);
   }
-  console.log('sql', sql);
-  let ordersResult = await pool.execute(sql, sqlParams);
+  let sqlPages = ' LIMIT ? OFFSET ?';
+  sqlParams.push(perPage, offset);
+  console.log('sql', sql + sqlPages);
+
+  let ordersResult = await pool.execute(sql + sqlPages, sqlParams);
   return ordersResult;
 }
 
-async function getOrderDetailInfo() {}
+async function getOrderById(id) {
+  let result = await pool.query(
+    'SELECT order_detail.*, product.name AS product_name, product.price AS prduct_price, product.img AS product_img , activity_camping.title AS camping_title, activity_camping.price AS camping_price, activity_camping.img1 AS camping_img, activity_pincnic_official.picnic_title AS picnic_title, activity_pincnic_official.price AS picnic_price, activity_pincnic_official.img1 AS picnic_img FROM order_detail LEFT JOIN product ON order_detail.product_id = product.id LEFT JOIN activity_camping ON order_detail.camping_id = activity_camping.id LEFT JOIN activity_pincnic_official ON order_detail.picnic_id = activity_pincnic_official.id;'
+  );
+
+  return result;
+
+  
+}
 
 async function postOrderById(orderData) {
   let result = await pool.query(
@@ -49,4 +73,4 @@ async function postOrderDetailById(cartItem) {
   return result;
 }
 
-module.exports = { getOrderDelivery, getOrderPayment, getOrderCount, getOrders, getOrderDetailInfo, postOrderById, postOrderDetailById };
+module.exports = { getOrderDelivery, getOrderPayment, getOrderCount, getOrders, getOrderById, postOrderById, postOrderDetailById };

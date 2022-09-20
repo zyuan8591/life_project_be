@@ -18,27 +18,31 @@ async function getOrderList(req, res) {
   // let user = req.session.user.id;
 
   // pagination
-  // page = page ? parseInt(page) : 1;
-  // perPage = perPage ? parseInt(perPage) : 5;
-  let total = await orderModel.getOrderCount(user);
-  console.log(total);
-  // let lastPage = Math.ceil(total / perPage);
-  // let offset = perPage * (page - 1);
+  page = page ? parseInt(page) : 1;
+  perPage = perPage ? parseInt(perPage) : 5;
+  let total = await orderModel.getOrderCount(user, status);
+  // console.log(total);
+  let lastPage = Math.ceil(total / perPage);
+  let offset = perPage * (page - 1);
 
-  let data = await orderModel.getOrders(status, user);
+  let data = await orderModel.getOrders(status, user, perPage, offset);
 
   res.json({
-    // pagination: {
-    //   total,
-    //   perPage,
-    //   page,
-    //   lastPage,
-    // },
+    pagination: {
+      total,
+      perPage,
+      page,
+      lastPage,
+    },
     data,
   });
 }
 
-async function getOrderDetail(req, res) {}
+async function getOrderDetail(req, res) {
+  let id = req.params.id;
+  let data = await orderModel.getOrderById(id);
+  res.json(data);
+}
 
 async function postOrder(req, res) {
   // console.log('body:', req.body);
@@ -112,7 +116,7 @@ async function postOrder(req, res) {
   //   axios;
   // }
   // console.log(address);
-  res.json({ message: 'ok' });
+  res.json({ order_id });
 }
 
 module.exports = { getOrderDeliveryList, getOrderPaymentList, getOrderList, getOrderDetail, postOrder };
