@@ -292,6 +292,7 @@ async function joinHistory(req, res) {
 }
 
 // 後台
+// all data
 async function backstageAllData(req, res) {
   const { state, order } = req.query;
   const activityState = ['即將開團', '開團中', '已成團', '開團已截止'];
@@ -369,6 +370,51 @@ async function backstageAllData(req, res) {
   // res.json(result);
 }
 
+// add camping
+async function postCampingAdd(req, res) {
+  // console.log(req.body);
+  let [camping] = await pool.execute('SELECT * FROM activity_camping c WHERE valid = 1 AND c.title = ?', [req.body.title]);
+  // console.log(camping.length);
+  // TODO: add map
+  if (camping.length !== 0) return res.json({ message: '此活動標題已存在' });
+  // return res.status(400).json({ message: '此活動標題已存在' });
+
+  let todayDate = moment().format('YYYY-MM-DD');
+  // console.log(req.body);
+  let newAddress = req.body.countyName + req.body.address;
+  // console.log(countyName, newAddress);
+  let result = await pool.execute(
+    'INSERT INTO activity_camping (location,title,place,address,lat,lng,activity_start_date,activity_end_date,price,join_limit,start_date,end_date,activity_about,activity_lodging,img1,img2,img3,create_time,activity_state,activity_intr,valid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+    [
+      req.body.county,
+      req.body.title,
+      req.body.place,
+      newAddress,
+      req.body.lat,
+      req.body.lng,
+      req.body.actStartDate,
+      req.body.actEndDate,
+      req.body.price,
+      req.body.pepCount,
+      req.body.startDate,
+      req.body.endDate,
+      req.body.actInt,
+      req.body.actLodging,
+      '',
+      '',
+      '',
+      todayDate,
+      1,
+      '',
+      1,
+    ]
+  );
+
+  console.log('addCamping', result);
+
+  res.json({ message: '新增成功' });
+}
+
 module.exports = {
   getCampingList,
   getCampingDetail,
@@ -381,4 +427,5 @@ module.exports = {
   userCollects,
   joinHistory,
   backstageAllData,
+  postCampingAdd,
 };

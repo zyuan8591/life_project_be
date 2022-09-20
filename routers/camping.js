@@ -33,6 +33,8 @@ router.post('/campingJoin/:campingId', authMid.checkLogin, campingController.pos
 
 // Backstage
 router.get('/backstage', campingController.backstageAllData);
+// post camping
+router.post('/campingAdd', campingController.postCampingAdd);
 
 router.delete('/campingJoin/:campingId', authMid.checkLogin, campingController.postDeleteJoin);
 router.get('/getUserJoin/:campingId', authMid.checkLogin, campingController.joinuser);
