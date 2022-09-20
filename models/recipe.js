@@ -45,12 +45,15 @@ async function getRecipeList(sort, user, name, perPage, offset, recipeId, recipe
 
   // filter for category
   let recipeCateSql = '';
+  console.log(parseInt(recipeCate));
   parseInt(recipeCate) ? (recipeCateSql = `AND recipe.category = ${recipeCate}`) : '';
   let productCateSql = '';
   parseInt(productCate) ? (productCateSql = `AND recipe.product_category = ${productCate}`) : '';
 
   // random recipe
   let randomSql = randomRecipe ? `AND recipe.id in (${randomRecipe})` : '';
+
+  console.log('recipeId', recipeId);
 
   let data = null;
   if (recipeId.length !== 0) {
@@ -84,7 +87,7 @@ async function getRecipeList(sort, user, name, perPage, offset, recipeId, recipe
       [`%${name}%`, perPage, offset]
     );
   }
-
+  console.log(data[0]);
   return data[0];
 }
 
@@ -97,7 +100,7 @@ async function getRecipeById(id) {
     LEFT JOIN recipe_comment ON recipe.id = recipe_comment.recipe_id
     LEFT JOIN recipe_like ON recipe.id = recipe_like.recipe_id 
     JOIN users ON recipe.user_id = users.id
-    WHERE recipe.id = (?)
+    WHERE recipe.id in (?)
     GROUP BY recipe.id`,
     [id]
   );

@@ -2,9 +2,7 @@ const recipeModel = require('../models/recipe');
 const moment = require('moment');
 
 async function getRecipeList(req, res) {
-  let { sort, user, name = '', page, perPage, materialName = '', recipeCate, productCate, random } = req.query;
-
-  // console.log(req.query);
+  let { sort, user, name = '', page, perPage, materialName = '', recipeCate, productCate, random, userLike } = req.query;
 
   // get recipe_id by material name [ 5, 9, 13 ]
   let searchMaterial = [];
@@ -12,10 +10,20 @@ async function getRecipeList(req, res) {
     searchMaterial = await recipeModel.getMaterialByName(materialName);
   }
 
+  // get recipe_id by user like
+  let searchLike = [];
+  if (req.session.user && userLike === 'true') {
+    searchLike = await recipeModel.getRecipeLikeByUser(req.session.user.id);
+    console.log(req.session.user.id);
+    console.log('searchlike', searchLike);
+  }
+  // concat search material and user like list
+  let recipeId = searchMaterial.concat(searchLike);
+
   // pagination
   page = page ? parseInt(page) : 1;
   perPage = perPage ? parseInt(perPage) : 5;
-  let total = await recipeModel.getRecipeCount(user, name, searchMaterial, recipeCate, productCate);
+  let total = await recipeModel.getRecipeCount(user, name, recipeId, recipeCate, productCate);
   let lastPage = Math.ceil(total / perPage);
   let offset = perPage * (page - 1);
 
@@ -30,7 +38,7 @@ async function getRecipeList(req, res) {
   }
   randomRecipe = randomRecipe.join(',');
 
-  let data = await recipeModel.getRecipeList(sort, user, name, perPage, offset, searchMaterial, recipeCate, productCate, randomRecipe);
+  let data = await recipeModel.getRecipeList(sort, user, name, perPage, offset, recipeId, recipeCate, productCate, randomRecipe);
 
   res.json({
     pagination: {
