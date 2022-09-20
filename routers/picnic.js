@@ -40,6 +40,7 @@ router.delete('/collectDelJoin/:officialId', authMid.checkLogin, picnicControlle
 // 詳細頁
 router.get('/official/:officialId', picnicController.getPicnicDetail);
 
+router.get('official/member', picnicModel.getJoinOfficial);
 // --------- 開團活動 ---------
 // 開團首頁列表
 router.get('/group', picnicController.getPrivateList);
