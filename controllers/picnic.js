@@ -59,28 +59,28 @@ async function picnicOfficalJoin(req, res) {
 async function picnicOffacialCollect(req, res) {
   const userId = req.session.user.id;
 
-  // let [collectResult] = await pool.execute(
-  //   'SELECT activity_pincnic_official.id AS picnic_id , activity_pincnic_official.user_id AS creater_id, activity_pincnic_official.location, activity_pincnic_official.address, activity_pincnic_official.activity_date, activity_pincnic_official.activity_state, activity_pincnic_official.price, activity_pincnic_official.join_limit, activity_pincnic_official.picnic_title, activity_pincnic_official.place_name, activity_pincnic_official.intr, activity_pincnic_official.img1, activity_pincnic_official.start_date,activity_pincnic_official.end_date, activity_pincnic_official.valid, picnic_official_collect.user_id FROM activity_pincnic_official JOIN picnic_official_collect ON activity_pincnic_official.id = picnic_official_collect.picnic_id WHERE picnic_official_collect.user_id = ?',
-  //   [userId]
-  // );
-  console.log('測試', userId);
-  res.json({ msg: '有收到' });
-  // const perPage = 5;
-  // const page = req.query.page || 1;
-  // let total = collectResult.length;
-  // let lastPage = Math.ceil(total / perPage);
-  // const offset = perPage * (page - 1);
-  // collectResult = collectResult.slice(offset, offset + perPage);
+  let [collectResult] = await pool.execute(
+    'SELECT activity_pincnic_official.id AS picnic_id , activity_pincnic_official.user_id AS creater_id, activity_pincnic_official.location, activity_pincnic_official.address, activity_pincnic_official.activity_date, activity_pincnic_official.activity_state, activity_pincnic_official.price, activity_pincnic_official.join_limit, activity_pincnic_official.picnic_title, activity_pincnic_official.place_name, activity_pincnic_official.intr, activity_pincnic_official.img1, activity_pincnic_official.start_date,activity_pincnic_official.end_date, activity_pincnic_official.valid, picnic_official_collect.user_id FROM activity_pincnic_official JOIN picnic_official_collect ON activity_pincnic_official.id = picnic_official_collect.picnic_id WHERE picnic_official_collect.user_id = ?',
+    [userId]
+  );
+  // console.log('測試', userId);
+  // res.json({ msg: '有收到' });
+  const perPage = 5;
+  const page = req.query.page || 1;
+  let total = collectResult.length;
+  let lastPage = Math.ceil(total / perPage);
+  const offset = perPage * (page - 1);
+  collectResult = collectResult.slice(offset, offset + perPage);
 
-  // res.json({
-  //   pagination: {
-  //     total,
-  //     perPage,
-  //     page,
-  //     lastPage,
-  //   },
-  //   collectResult,
-  // });
+  res.json({
+    pagination: {
+      total,
+      perPage,
+      page,
+      lastPage,
+    },
+    collectResult,
+  });
 }
 async function getMemberPicnicGroupData(req, res) {
   const perPage = 5;
