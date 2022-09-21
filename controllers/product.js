@@ -102,7 +102,7 @@ async function getRandomProductRecommend(req, res) {
 
   let randomProduct = [];
   let randomProductNumber = [];
-  for (let i = 0; i < 9; i++) {
+  for (let i = 0; i < 12; i++) {
     while (randomProduct.length < i + 1) {
       let choose = Math.floor(Math.random() * randomNumber.length);
       if (!randomProduct.includes(choose)) randomProduct.push(choose);
