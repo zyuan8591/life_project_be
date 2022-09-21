@@ -123,6 +123,19 @@ async function getRandomProductRecommend(randomProductNumber) {
 
   return data;
 }
+async function getUserProductLike(user_id) {
+  let [data] = await pool.query(
+    `SELECT product_like.*, product.name, product.img, product.color FROM product_like JOIN product ON product_like.product_id = product.id WHERE user_id = ? `,
+    [user_id]
+  );
+  // console.log('getLike', user_id);
+  return data;
+}
+
+async function getProductByBrand(brandId, offset) {
+  let [data] = await pool.query(`SELECT * FROM product WHERE company_id = ? LIMIT ? OFFSET ?`, [brandId, 5, offset]);
+  return data;
+}
 
 module.exports = {
   getProductList,
@@ -138,4 +151,6 @@ module.exports = {
   removeProductLike,
   getRandomProductNumber,
   getRandomProductRecommend,
+  getUserProductLike,
+  getProductByBrand,
 };

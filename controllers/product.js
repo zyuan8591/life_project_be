@@ -114,10 +114,32 @@ async function getRandomProductRecommend(req, res) {
   let data = await productModel.getRandomProductRecommend(randomProductNumber);
   res.json(data);
 }
+async function getUserProductLike(req, res) {
+  let user_id = req.session.user.id;
+  let data = await productModel.getUserProductLike(user_id);
+  res.json(data);
+}
 
 async function getProductByBrand(req, res) {
-  let [data] = await productModel.getProductByBrand();
-  res.json(data);
+  let { brandId } = req.params;
+  let { page, perPage } = req.query;
+  page = page ? parseInt(page) : 1;
+  perPage = perPage ? parseInt(perPage) : 5;
+  let total = await productModel.getProductCount(brandId);
+  let lastPage = Math.ceil(total / perPage);
+  let offset = perPage * (page - 1);
+  let data = await productModel.getProductByBrand(brandId, offset);
+  console.log(brandId);
+  res.json({
+    pagination: {
+      total,
+      perPage,
+      page,
+      lastPage,
+      offset,
+    },
+    data,
+  });
 }
 module.exports = {
   getIndexProduct,
@@ -132,5 +154,6 @@ module.exports = {
   getProductLike,
   removeProductLike,
   getRandomProductRecommend,
-  getProductByBrand
+  getUserProductLike,
+  getProductByBrand,
 };
