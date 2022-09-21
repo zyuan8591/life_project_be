@@ -58,4 +58,7 @@ router.post('/forgotpassword', userController.forgotemail);
 //忘記密碼-重置密碼
 router.put('/forgotpassword', reqistetRules, userController.forgotpasswordasync);
 
+//取得會員點數
+router.get('/points', userController.getPoints);
+
 module.exports = router;
