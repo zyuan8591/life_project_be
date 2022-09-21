@@ -20,16 +20,15 @@ async function getProductCount(productName, productCate, brand, smallThan, bigge
 async function getProductList(productName = '', productCate, perPage, offset, brand, smallThan, biggerThan, sort) {
   // sort
   let sortSql = null;
-  switch (sort) {
-    case '1':
-      sortSql = 'ORDER BY id DESC';
-      break;
-    case '2':
-      sortSql = 'ORDER BY created_time DESC';
-      break;
-    default:
-      sortSql = '';
-      break;
+
+  if (sort == 1) {
+    sortSql = 'ORDER BY id DESC';
+  } else if (sort == 2) {
+    sortSql = 'ORDER BY created_time DESC';
+  } else if (sort == 3) {
+    sortSql = 'ORDER BY company_id ASC';
+  } else {
+    sortSql = '';
   }
   // category
   let productCateSql = '';
@@ -56,26 +55,23 @@ async function getProductList(productName = '', productCate, perPage, offset, br
 
 async function getProductCategory() {
   let data = await pool.query('SELECT * FROM product_category');
-  console.log(data[0]);
+  // console.log(data[0]);
   return data[0];
 }
 
 async function getProductById(id) {
   let [data] = await pool.query(
-    `SELECT product.*, product_category.name AS product_category_name, company.name AS brand FROM product JOIN product_category ON product.category = product_category.id JOIN company ON product.company_id = company.id WHERE product.id = (?)`,
+    `SELECT product.*, product_category.name AS product_category_name, company.name AS brand FROM product JOIN product_category ON product.category = product_category.id JOIN company ON product.company_id = company.id WHERE product.id in (?)`,
     [id]
   );
-  console.log(data);
+  // console.log(data);
   return data;
 }
 
 async function getBrandList(brand) {
-  // let [data] = await pool.query(`SELECT * FROM company `);
-  // let productCateSql = '';
-  // parseInt(productCate) ? (productCateSql = `AND category = ${productCate}`) : '';
-  console.log(brand);
+  // console.log(brand);
   let [data] = await pool.query(`SELECT * FROM company WHERE name LIKE ?`, [`%${brand}%`]);
-  console.log(data);
+  // console.log(data);
   return data;
 }
 
@@ -84,4 +80,77 @@ async function getProductDetailImg(id) {
   return data;
 }
 
-module.exports = { getProductList, getProductCategory, getProductById, getBrandList, getProductDetailImg, getProductCount };
+async function getProductComment(id) {
+  let [data] = await pool.query(
+    `SELECT product_comment.*, users.photo, users.name FROM product_comment JOIN users ON product_comment.user_id = users.id WHERE product_id = ? ORDER BY create_time DESC`,
+    [id]
+  );
+  return data;
+}
+
+async function writeProductComment(user_id, writeComment, id, time, star) {
+  let result = await pool.execute(`INSERT INTO product_comment (user_id, comment, product_id, create_time, star) VALUES (?, ?, ?, ?, ?)`, [user_id, writeComment, id, time, star]);
+  console.log(result);
+}
+
+async function addProductLike(user_id, id) {
+  let result = await pool.execute(`INSERT INTO product_like (user_id, product_id) VALUES (?, ?)`, [user_id, id]);
+  console.log(result);
+}
+
+async function getProductLike(user_id) {
+  let [data] = await pool.query(
+    `SELECT product_like.*, product.name, product.img, product.color FROM product_like JOIN product ON product_like.product_id = product.id WHERE user_id = ? `,
+    [user_id]
+  );
+  console.log('getLike', user_id);
+  return data;
+}
+
+async function removeProductLike(user_id, id) {
+  let result = await pool.query(`DELETE FROM product_like WHERE user_id = ? AND product_id = ?`, [user_id, id]);
+  console.log('remove', result);
+}
+
+async function getRandomProductNumber(category) {
+  let [randomNumber] = await pool.query(`SELECT id FROM product WHERE category = ?`, [category]);
+
+  return randomNumber;
+}
+
+async function getRandomProductRecommend(randomProductNumber) {
+  let [data] = await pool.query(`SELECT * FROM product WHERE id in (?) `, [randomProductNumber]);
+
+  return data;
+}
+async function getUserProductLike(user_id) {
+  let [data] = await pool.query(
+    `SELECT product_like.*, product.name, product.img, product.color FROM product_like JOIN product ON product_like.product_id = product.id WHERE user_id = ? `,
+    [user_id]
+  );
+  // console.log('getLike', user_id);
+  return data;
+}
+
+async function getProductByBrand(brandId, offset) {
+  let [data] = await pool.query(`SELECT * FROM product WHERE company_id = ? LIMIT ? OFFSET ?`, [brandId, 5, offset]);
+  return data;
+}
+
+module.exports = {
+  getProductList,
+  getProductCategory,
+  getProductById,
+  getBrandList,
+  getProductDetailImg,
+  getProductCount,
+  getProductComment,
+  writeProductComment,
+  addProductLike,
+  getProductLike,
+  removeProductLike,
+  getRandomProductNumber,
+  getRandomProductRecommend,
+  getUserProductLike,
+  getProductByBrand,
+};
