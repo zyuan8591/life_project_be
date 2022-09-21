@@ -3,7 +3,37 @@ const router = express.Router();
 const campingController = require('../controllers/camping');
 const authMid = require('../middlewares/auth');
 const campingModel = require('../models/camping');
+const path = require('path');
 
+const multer = require('multer');
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    // dirname 目前檔案的位置
+    cb(null, path.join(__dirname, '..', 'public', 'camping', 'activity_camping_img'));
+  },
+  // 圖片名稱
+  filename: function (req, file, cb) {
+    // 原始檔名 file.originalname
+    cb(null, file.originalname);
+  },
+});
+
+const uploader = multer({
+  storage: storage,
+  // 過濾圖片的種類
+  fileFilter: function (req, file, cb) {
+    if (file.mimetype !== 'image/jpeg' && file.mimetype !== 'image/jpg' && file.mimetype !== 'image/png' && file.mimetype !== 'image/webp') {
+      cb(new Error('上傳的檔案型態不接受'), false);
+    } else {
+      cb(null, true);
+    }
+  },
+  // 過濾檔案的大小
+  limits: {
+    // 1k = 1024 => 200k = 200 * 1024
+    fileSize: 1000 * 1024,
+  },
+});
 router.get('/', campingController.getCampingList);
 
 router.get('/campingCollected', authMid.checkLogin, async (req, res) => {
@@ -30,6 +60,11 @@ router.get('/userJoin', authMid.checkLogin, campingController.joinHistory);
 
 // add join  --> /api/1.0/camping/campingJoin/1
 router.post('/campingJoin/:campingId', authMid.checkLogin, campingController.postCampingJoin);
+
+// Backstage
+router.get('/backstage', campingController.backstageAllData);
+// post camping
+router.post('/campingAdd', uploader.array('photo1'), campingController.postCampingAdd);
 
 router.delete('/campingJoin/:campingId', authMid.checkLogin, campingController.postDeleteJoin);
 router.get('/getUserJoin/:campingId', authMid.checkLogin, campingController.joinuser);
