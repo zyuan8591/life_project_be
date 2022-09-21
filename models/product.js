@@ -133,6 +133,13 @@ async function getUserProductLike(user_id) {
   return data;
 }
 
+async function addProduct(name, price, brand, inventory, cate, spec, color, intro, photo1, photo2, photo3, now) {
+  let result = await pool.execute(
+    `INSERT INTO product (name, price, company_id, inventory, category, spec, color, intro, img, img2, img3, created_time,) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+    [name, price, brand, inventory, cate, spec, color, intro, photo1, photo2, photo3, now]
+  );
+  console.log('addProduct', result);
+}
 
 module.exports = {
   getProductList,
@@ -149,4 +156,5 @@ module.exports = {
   getRandomProductNumber,
   getRandomProductRecommend,
   getUserProductLike,
+  addProduct,
 };

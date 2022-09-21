@@ -122,9 +122,13 @@ async function getUserProductLike(req, res) {
 
 async function addProduct(req, res) {
   // let company_id = req.session.user.id;
-  
-}
+  let { name, price, brand, inventory, cate, spec, color, intro, photo1, photo2, photo3 } = req.body;
+  let now = moment().format();
+  console.log(req.body);
+  productModel.addProduct(name, price, brand, inventory, cate, spec, color, intro, photo1, photo2, photo3, now);
 
+  res.json({ message: '新增成功' });
+}
 
 module.exports = {
   getIndexProduct,
@@ -140,5 +144,5 @@ module.exports = {
   removeProductLike,
   getRandomProductRecommend,
   getUserProductLike,
-
+  addProduct,
 };
