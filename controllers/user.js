@@ -1,6 +1,7 @@
 const userModel = require('../models/user');
 const { validationResult } = require('express-validator');
 const argon2 = require('argon2');
+const pool = require('../utils/db');
 
 //get 會員資料
 async function getUser(req, res) {
@@ -64,10 +65,34 @@ async function forgotpasswordasync(req, res) {
   res.json('密碼修改成功');
 }
 
+//取得會員點數資料
+async function getPoints(req, res) {
+  let user_id = req.session.user.id;
+  const perPage = 5;
+  const page = req.query.page || 1;
+  let [total] = await pool.execute('SELECT COUNT(*) AS total FROM user_points WHERE user_id = ?', [req.session.user.id]);
+  total = total[0].total;
+  let lastPage = Math.ceil(total / perPage);
+  const offset = perPage * (page - 1);
+  let data = await userModel.getpoints(user_id);
+  console.log('points', data);
+  data = data.slice(offset, offset + perPage);
+  res.json({
+    pagination: {
+      total,
+      perPage,
+      page,
+      lastPage,
+    },
+    data,
+  });
+}
+
 module.exports = {
   getUser,
   putUser,
   putPassword,
   forgotemail,
   forgotpasswordasync,
+  getPoints,
 };
