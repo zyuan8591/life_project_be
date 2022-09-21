@@ -120,6 +120,11 @@ async function getUserProductLike(req, res) {
   res.json(data);
 }
 
+async function addProduct(req, res) {
+  // let company_id = req.session.user.id;
+  
+}
+
 
 module.exports = {
   getIndexProduct,

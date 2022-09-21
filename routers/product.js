@@ -23,6 +23,7 @@ router.get('/recommend', productController.getRandomProductRecommend);
 
 // GET /products/1/backstage
 router.get('/backstage', productController.getProductList);
+
 // get product for id
 // GET /products/1
 router.get('/:id', productController.getProductDetail);
@@ -33,7 +34,6 @@ router.get('/:id/detailImg', productController.getProductDetailImg);
 // GET /products/1/comment
 router.get('/:id/productComment', productController.getProductComment);
 
-
 // POST /products/1/comment
 router.post('/:id/comment', authMiddleware.checkLogin, productController.writeProductComment);
 
@@ -41,5 +41,7 @@ router.post('/:id/comment', authMiddleware.checkLogin, productController.writePr
 router.post('/addLike', authMiddleware.checkLogin, productController.addProductLike);
 // DELETE /products/1/removeLike
 router.delete('/:id/removeLike', authMiddleware.checkLogin, productController.removeProductLike);
+
+router.post('/addProduct', productController.addProduct);
 
 module.exports = router;
