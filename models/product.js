@@ -1,10 +1,11 @@
 const pool = require('../utils/db');
 
-async function getProductCount(productName, productCate, brand, smallThan, biggerThan) {
+async function getProductCount(productName = '', productCate, brand, smallThan, biggerThan) {
   let productCateSql = '';
   let productBrandSql = '';
   let biggerThanSql = '';
   let smallThanSql = '';
+  console.log('count', brand);
   parseInt(productCate) ? (productCateSql = `AND category = ${productCate}`) : '';
   parseInt(brand) ? (productBrandSql = `AND company_id in (${brand})`) : '';
   parseInt(biggerThan) ? (biggerThanSql = ` AND price >= ${biggerThan}`) : '';
@@ -132,10 +133,6 @@ async function getUserProductLike(user_id) {
   return data;
 }
 
-async function getProductByBrand(brandId, offset) {
-  let [data] = await pool.query(`SELECT * FROM product WHERE company_id = ? LIMIT ? OFFSET ?`, [brandId, 5, offset]);
-  return data;
-}
 
 module.exports = {
   getProductList,
@@ -152,5 +149,4 @@ module.exports = {
   getRandomProductNumber,
   getRandomProductRecommend,
   getUserProductLike,
-  getProductByBrand,
 };
