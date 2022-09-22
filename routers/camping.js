@@ -15,6 +15,7 @@ const storage = multer.diskStorage({
   filename: function (req, file, cb) {
     // 原始檔名 file.originalname
     cb(null, file.originalname);
+    // console.log('file', file);
   },
 });
 
@@ -65,6 +66,8 @@ router.post('/campingJoin/:campingId', authMid.checkLogin, campingController.pos
 router.get('/backstage', campingController.backstageAllData);
 // post camping
 router.post('/campingAdd', uploader.array('photo1'), campingController.postCampingAdd);
+router.put('/campingUpdate', uploader.array('photo1'), campingController.putCampingUpdate);
+// router.put('/campingDel', campingController.putCampingDel);
 
 router.delete('/campingJoin/:campingId', authMid.checkLogin, campingController.postDeleteJoin);
 router.get('/getUserJoin/:campingId', authMid.checkLogin, campingController.joinuser);
