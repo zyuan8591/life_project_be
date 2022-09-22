@@ -124,21 +124,22 @@ async function getRandomProductRecommend(randomProductNumber) {
 
   return data;
 }
-async function getUserProductLike(user_id) {
-  let [data] = await pool.query(
-    `SELECT product_like.*, product.name, product.img, product.color FROM product_like JOIN product ON product_like.product_id = product.id WHERE user_id = ? `,
-    [user_id]
-  );
-  // console.log('getLike', user_id);
-  return data;
-}
 
-async function addProduct(name, price, brand, inventory, cate, spec, color, intro, photo1, photo2, photo3, now) {
+async function addProduct(name, price, brand, inventory, cate, spec, color, intro, photo1 = '', photo2 = '', photo3 = '', now, detail_img) {
   let result = await pool.execute(
-    `INSERT INTO product (name, price, company_id, inventory, category, spec, color, intro, img, img2, img3, created_time,) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+    `INSERT INTO product (name, price, company_id, inventory, category, spec, color, intro, img, img2, img3, created_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [name, price, brand, inventory, cate, spec, color, intro, photo1, photo2, photo3, now]
   );
+  let [{ insertId }] = result;
+
+  let detailResult = await pool.execute(`INSERT INTO product_detail (product_id, img) VALUES (?, ?)`, [insertId, detail_img]);
   console.log('addProduct', result);
+  console.log('detail_img', detailResult);
+}
+
+async function getProductRank() {
+  let [data] = await pool.query(`SELECT * FROM product ORDER BY sales DESC LIMIT 15 `);
+  return data;
 }
 
 module.exports = {
@@ -155,6 +156,6 @@ module.exports = {
   removeProductLike,
   getRandomProductNumber,
   getRandomProductRecommend,
-  getUserProductLike,
   addProduct,
+  getProductRank,
 };

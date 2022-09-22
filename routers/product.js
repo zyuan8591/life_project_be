@@ -8,7 +8,11 @@ const multer = require('multer');
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     // dirname 目前檔案的位置
-    cb(null, path.join(__dirname, '..', 'public', 'product', 'product_img'));
+    if (file.originalname.includes('detail')) {
+      cb(null, path.join(__dirname, '..', 'public', 'product', 'product_detail_img'));
+    } else {
+      cb(null, path.join(__dirname, '..', 'public', 'product', 'product_img'));
+    }
   },
   // 圖片名稱
   filename: function (req, file, cb) {
@@ -30,7 +34,7 @@ const uploader = multer({
   // 過濾檔案的大小
   limits: {
     // 1k = 1024 => 200k = 200 * 1024
-    fileSize: 1000 * 1024,
+    fileSize: 4000 * 1024,
   },
 });
 
@@ -48,6 +52,9 @@ router.get('/brand', productController.getBrandList);
 
 // GET /products/like
 router.get('/like', authMiddleware.checkLogin, productController.getProductLike);
+
+// GET /products/rank
+router.get('/rank', productController.getProductRank);
 
 // GET /products/1/recommend
 router.get('/recommend', productController.getRandomProductRecommend);

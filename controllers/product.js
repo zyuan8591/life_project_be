@@ -114,20 +114,27 @@ async function getRandomProductRecommend(req, res) {
   let data = await productModel.getRandomProductRecommend(randomProductNumber);
   res.json(data);
 }
-async function getUserProductLike(req, res) {
-  let user_id = req.session.user.id;
-  let data = await productModel.getUserProductLike(user_id);
-  res.json(data);
-}
 
 async function addProduct(req, res) {
   // let company_id = req.session.user.id;
-  let { name, price, brand, inventory, cate, spec, color, intro, photo1, photo2, photo3 } = req.body;
+  let { name, price, brand, inventory, cate, spec, color, intro } = req.body;
+  // console.log(req.files[1].originalname);
+  let photo1 = req.files[0].originalname;
+  let photo2 = req.files[1].originalname;
+  let photo3 = req.files[2].originalname;
+  let detail_img = req.files[3].originalname;
+
+  // console.log(photo1, photo2, photo3);
   let now = moment().format();
-  console.log(req.body);
-  productModel.addProduct(name, price, brand, inventory, cate, spec, color, intro, photo1, photo2, photo3, now);
+  // console.log(req.body, now);
+  productModel.addProduct(name, price, brand, inventory, cate, spec, color, intro, photo1, photo2, photo3, now, detail_img);
 
   res.json({ message: '新增成功' });
+}
+
+async function getProductRank(req, res) {
+  let data = await productModel.getProductRank();
+  res.json(data);
 }
 
 module.exports = {
@@ -143,6 +150,6 @@ module.exports = {
   getProductLike,
   removeProductLike,
   getRandomProductRecommend,
-  getUserProductLike,
   addProduct,
+  getProductRank,
 };

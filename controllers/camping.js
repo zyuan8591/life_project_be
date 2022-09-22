@@ -380,7 +380,7 @@ async function postCampingAdd(req, res) {
   // return res.status(400).json({ message: '此活動標題已存在' });
 
   let todayDate = moment().format('YYYY-MM-DD');
-  // console.log(req.body);
+  console.log(req.files);
   let newAddress = req.body.countyName + req.body.address;
   // console.log(countyName, newAddress);
   let result = await pool.execute(
