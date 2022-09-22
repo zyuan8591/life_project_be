@@ -67,7 +67,7 @@ router.get('/backstage', campingController.backstageAllData);
 // post camping
 router.post('/campingAdd', uploader.array('photo1'), campingController.postCampingAdd);
 router.put('/campingUpdate', uploader.array('photo1'), campingController.putCampingUpdate);
-// router.put('/campingDel', campingController.putCampingDel);
+router.put('/campingDel/:camping', campingController.putCampingDel);
 
 router.delete('/campingJoin/:campingId', authMid.checkLogin, campingController.postDeleteJoin);
 router.get('/getUserJoin/:campingId', authMid.checkLogin, campingController.joinuser);

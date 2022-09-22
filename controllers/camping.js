@@ -409,7 +409,7 @@ async function postCampingAdd(req, res) {
     ]
   );
 
-  console.log('files', req.files);
+  console.log('files', req.files, result);
   // console.log('fileName', req.files[0].originalname);
   res.json({ message: '新增成功' });
 }
@@ -435,40 +435,41 @@ async function putCampingUpdate(req, res) {
 
   console.log('img', img);
 
-  // let result = await pool.execute(
-  //   `UPDATE activity_camping SET location=?,title=?,place=?,address=?,lat=?,lng=?,activity_start_date=?,activity_end_date=?,price=?,join_limit=?,start_date=?,end_date=?,activity_about=?,activity_lodging=?,${img1}${img2}${img3} create_time=? WHERE id=? `,
-  //   [
-  //     req.body.county,
-  //     req.body.title,
-  //     req.body.place,
-  //     newAddress,
-  //     req.body.lat,
-  //     req.body.lng,
-  //     req.body.actStartDate,
-  //     req.body.actEndDate,
-  //     req.body.price,
-  //     req.body.pepCount,
-  //     req.body.startDate,
-  //     req.body.endDate,
-  //     req.body.actInt,
-  //     req.body.actLodging,
-  //     // req.files[0].originalname,
-  //     // req.files[1].originalname,
-  //     // req.files[2].originalname,
-  //     todayDate,
-  //     req.body.campingId,
-  //   ]
-  // );
-  // console.log('updateResult', result);
+  let result = await pool.execute(
+    `UPDATE activity_camping SET location=?,title=?,place=?,address=?,lat=?,lng=?,activity_start_date=?,activity_end_date=?,price=?,join_limit=?,start_date=?,end_date=?,activity_about=?,activity_lodging=?,img1=?,img2=?,img3=?, create_time=? WHERE id=? `,
+    [
+      req.body.county,
+      req.body.title,
+      req.body.place,
+      newAddress,
+      req.body.lat,
+      req.body.lng,
+      req.body.actStartDate,
+      req.body.actEndDate,
+      req.body.price,
+      req.body.pepCount,
+      req.body.startDate,
+      req.body.endDate,
+      req.body.actInt,
+      req.body.actLodging,
+      img[0],
+      img[1],
+      img[2],
+      todayDate,
+      req.body.campingId,
+    ]
+  );
+  console.log('updateResult', result);
   res.json({ message: '修改成功' });
 }
 // del
-// async function putCampingDel(req, res) {
-//   console.log(req.body);
-//   let [result] = await pool.execute('UPDATE activity_camping SET valid=? WHERE id = ?', [0]);
-//   console.log('collect', result);
-//   res.json({ message: '刪除成功' });
-// }
+async function putCampingDel(req, res) {
+  const campingId = req.params.campingId;
+  console.log(campingId);
+  // let [result] = await pool.execute('UPDATE activity_camping SET valid=? WHERE id = ?', [0, campingId]);
+  // console.log('del', result);
+  res.json({ message: '刪除成功' });
+}
 
 module.exports = {
   getCampingList,
@@ -484,5 +485,5 @@ module.exports = {
   backstageAllData,
   postCampingAdd,
   putCampingUpdate,
-  // putCampingDel,
+  putCampingDel,
 };
