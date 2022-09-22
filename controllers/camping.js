@@ -372,7 +372,6 @@ async function backstageAllData(req, res) {
 
 // add camping
 async function postCampingAdd(req, res) {
-  // console.log(req.body);
   let [camping] = await pool.execute('SELECT * FROM activity_camping c WHERE valid = 1 AND c.title = ?', [req.body.title]);
   // console.log(camping.length);
   // TODO: add map
@@ -380,7 +379,7 @@ async function postCampingAdd(req, res) {
   // return res.status(400).json({ message: '此活動標題已存在' });
 
   let todayDate = moment().format('YYYY-MM-DD');
-  console.log(req.files);
+  // console.log('body', req.body);
   let newAddress = req.body.countyName + req.body.address;
   // console.log(countyName, newAddress);
   let result = await pool.execute(
@@ -400,9 +399,9 @@ async function postCampingAdd(req, res) {
       req.body.endDate,
       req.body.actInt,
       req.body.actLodging,
-      '',
-      '',
-      '',
+      req.files[0].originalname,
+      req.files[1].originalname,
+      req.files[2].originalname,
       todayDate,
       1,
       '',
@@ -410,10 +409,66 @@ async function postCampingAdd(req, res) {
     ]
   );
 
-  console.log('addCamping', result);
-
+  console.log('files', req.files);
+  // console.log('fileName', req.files[0].originalname);
   res.json({ message: '新增成功' });
 }
+
+// put
+async function putCampingUpdate(req, res) {
+  let todayDate = moment().format('YYYY-MM-DD');
+  let newAddress = req.body.countyName + req.body.address;
+  // console.log(newAddress);
+  console.log('req.files', req.files);
+  console.log('req.body', req.body);
+  let { photoChange1, photoChange2, photoChange3 } = req.body;
+  let change = [photoChange1, photoChange2, photoChange3]
+    .map((d, i) => {
+      if (d === 'false') return i + 1;
+    })
+    .filter((d) => d);
+
+  let img = [req.body.photoOrgin1, req.body.photoOrgin2, req.body.photoOrgin3];
+  for (let i = 0; i < req.files.length; i++) {
+    img[change[i] - 1] = req.files[i].originalname;
+  }
+
+  console.log('img', img);
+
+  // let result = await pool.execute(
+  //   `UPDATE activity_camping SET location=?,title=?,place=?,address=?,lat=?,lng=?,activity_start_date=?,activity_end_date=?,price=?,join_limit=?,start_date=?,end_date=?,activity_about=?,activity_lodging=?,${img1}${img2}${img3} create_time=? WHERE id=? `,
+  //   [
+  //     req.body.county,
+  //     req.body.title,
+  //     req.body.place,
+  //     newAddress,
+  //     req.body.lat,
+  //     req.body.lng,
+  //     req.body.actStartDate,
+  //     req.body.actEndDate,
+  //     req.body.price,
+  //     req.body.pepCount,
+  //     req.body.startDate,
+  //     req.body.endDate,
+  //     req.body.actInt,
+  //     req.body.actLodging,
+  //     // req.files[0].originalname,
+  //     // req.files[1].originalname,
+  //     // req.files[2].originalname,
+  //     todayDate,
+  //     req.body.campingId,
+  //   ]
+  // );
+  // console.log('updateResult', result);
+  res.json({ message: '修改成功' });
+}
+// del
+// async function putCampingDel(req, res) {
+//   console.log(req.body);
+//   let [result] = await pool.execute('UPDATE activity_camping SET valid=? WHERE id = ?', [0]);
+//   console.log('collect', result);
+//   res.json({ message: '刪除成功' });
+// }
 
 module.exports = {
   getCampingList,
@@ -428,4 +483,6 @@ module.exports = {
   joinHistory,
   backstageAllData,
   postCampingAdd,
+  putCampingUpdate,
+  // putCampingDel,
 };
