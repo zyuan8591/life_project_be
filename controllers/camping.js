@@ -223,7 +223,8 @@ async function joinuser(req, res) {
 
 // user collect
 async function userCollects(req, res) {
-  //
+  const activityState = ['即將開團', '開團中', '已成團', '開團已截止'];
+
   let [collectResult] = await pool.execute('SELECT * FROM activity_camping_collect WHERE user_id = ?', [req.session.user.id]);
 
   let campingIds = collectResult.map((users) => users.activity_id);
@@ -236,6 +237,19 @@ async function userCollects(req, res) {
 
   let [result] = await pool.query(`SELECT * FROM activity_camping WHERE id in (?)`, [campingIds]);
   // console.log(result);
+
+  result = result.map((d) => {
+    let todayDate = Number(moment().format('YYYYMMDD'));
+    let startDate = parseInt(d.start_date.replace(/-/g, ''));
+    let endDate = parseInt(d.end_date.replace(/-/g, ''));
+    let state = '';
+    let count = d.pepcount;
+    if (startDate < todayDate && endDate < todayDate) state = activityState[3];
+    if (startDate <= todayDate && endDate >= todayDate) state = activityState[1];
+    if (d.join_limit === count) state = activityState[2];
+    if (startDate > todayDate && endDate > todayDate) state = activityState[0];
+    return { ...d, state };
+  });
   //
   let total = result.length;
   // console.log(total);
@@ -258,6 +272,8 @@ async function userCollects(req, res) {
 
 // user join History
 async function joinHistory(req, res) {
+  const activityState = ['即將開團', '開團中', '已成團', '開團已截止'];
+
   let [joinResult] = await pool.execute('SELECT * FROM activity_camping_join WHERE user_id = ?', [req.session.user.id]);
 
   let campingIds = joinResult.map((users) => users.activity_id);
@@ -271,7 +287,20 @@ async function joinHistory(req, res) {
 
   let [result] = await pool.query(`SELECT * FROM activity_camping c WHERE id in (?) AND c.activity_end_date < ${todayDate}`, [campingIds]);
   // console.log(result);
-  //
+
+  result = result.map((d) => {
+    let todayDate = Number(moment().format('YYYYMMDD'));
+    let startDate = parseInt(d.start_date.replace(/-/g, ''));
+    let endDate = parseInt(d.end_date.replace(/-/g, ''));
+    let state = '';
+    let count = d.pepcount;
+    if (startDate < todayDate && endDate < todayDate) state = activityState[3];
+    if (startDate <= todayDate && endDate >= todayDate) state = activityState[1];
+    if (d.join_limit === count) state = activityState[2];
+    if (startDate > todayDate && endDate > todayDate) state = activityState[0];
+    return { ...d, state };
+  });
+
   let total = result.length;
   // console.log(total);
   const perPage = 5;
@@ -374,7 +403,6 @@ async function backstageAllData(req, res) {
 async function postCampingAdd(req, res) {
   let [camping] = await pool.execute('SELECT * FROM activity_camping c WHERE valid = 1 AND c.title = ?', [req.body.title]);
   // console.log(camping.length);
-  // TODO: add map
   if (camping.length !== 0) return res.json({ message: '此活動標題已存在' });
   // return res.status(400).json({ message: '此活動標題已存在' });
 
