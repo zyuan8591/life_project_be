@@ -10,4 +10,9 @@ async function getAllNews(cate = '') {
   return data;
 }
 
-module.exports = { getAllNews };
+async function getAllCategory() {
+  let [data] = await pool.execute(`SELECT * FROM news_category`);
+  return data;
+}
+
+module.exports = { getAllNews, getAllCategory };

@@ -7,4 +7,9 @@ async function getNewsList(req, res) {
   res.json(data);
 }
 
-module.exports = { getNewsList };
+async function getNewsCategory(req, res) {
+  let data = await newsModel.getAllCategory();
+  res.json(data);
+}
+
+module.exports = { getNewsList, getNewsCategory };
