@@ -142,6 +142,29 @@ async function getProductRank() {
   return data;
 }
 
+async function productUpdate(id, detailId, name, price, inventory, cate, spec, color, intro, img) {
+  let result = await pool.execute(`UPDATE product SET name=?, price=?, inventory=?, category=?, spec=?, color=?, intro=?, img= ?, img2=?, img3=? WHERE id=?`, [
+    name,
+    price,
+    inventory,
+    cate,
+    spec,
+    color,
+    intro,
+    img[0],
+    img[1],
+    img[2],
+    id,
+  ]);
+  let detailResult = await pool.execute(`UPDATE product_detail SET img = ? WHERE id = ?`, [img[3], detailId]);
+  console.log('update', result, 'detailResult', detailResult);
+}
+
+async function productDelete(id) {
+  let result = await pool.execute(`UPDATE product SET valid = 0 WHERE id = ?`, [id]);
+  console.log(result);
+}
+
 module.exports = {
   getProductList,
   getProductCategory,
@@ -158,4 +181,6 @@ module.exports = {
   getRandomProductRecommend,
   addProduct,
   getProductRank,
+  productUpdate,
+  productDelete,
 };

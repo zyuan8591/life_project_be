@@ -82,4 +82,8 @@ router.delete('/:id/removeLike', authMiddleware.checkLogin, productController.re
 
 router.post('/addProduct', uploader.array('photo1'), productController.addProduct);
 
+router.put('/updateProduct', uploader.array('photo1'), productController.productUpdate);
+
+router.put('/deleteProduct', productController.productDelete);
+
 module.exports = router;

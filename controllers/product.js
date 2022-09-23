@@ -138,6 +138,39 @@ async function getProductRank(req, res) {
   res.json(data);
 }
 
+async function productUpdate(req, res) {
+  console.log('req.files', req.files);
+  console.log('req.body', req.body);
+  let { id, detailId, name, price, inventory, cate, spec, color, intro } = req.body;
+  // console.log(req.files[1].originalname);
+  // let photo1 = req.files[0].originalname;
+  // let photo2 = req.files[1].originalname;
+  // let photo3 = req.files[2].originalname;
+  // let detail_img = req.files[3].originalname;
+  console.log('detailId', detailId);
+  let { photoChange1, photoChange2, photoChange3, photoChange4 } = req.body;
+  let change = [photoChange1, photoChange2, photoChange3, photoChange4]
+    .map((d, i) => {
+      if (d === 'false') return i + 1;
+    })
+    .filter((d) => d);
+
+  let img = [req.body.photoOrgin1, req.body.photoOrgin2, req.body.photoOrgin3, req.body.photoOrgin4];
+  for (let i = 0; i < req.files.length; i++) {
+    img[change[i] - 1] = req.files[i].originalname;
+  }
+  productModel.productUpdate(id, detailId, name, price, inventory, cate, spec, color, intro, img);
+  console.log('img', img);
+  res.json({ message: '修改成功' });
+}
+
+async function productDelete(req, res) {
+  let { id } = req.query;
+  console.log(id);
+  productModel.productDelete(id);
+  res.json({ message: '刪除成功' });
+}
+
 module.exports = {
   getIndexProduct,
   getProductList,
@@ -153,4 +186,6 @@ module.exports = {
   getRandomProductRecommend,
   addProduct,
   getProductRank,
+  productUpdate,
+  productDelete,
 };
