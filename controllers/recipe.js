@@ -212,6 +212,19 @@ async function updateRecipeStep(req, res) {
   res.json({ message: 'ok' });
 }
 
+async function delRecipeComment(req, res) {
+  let comment_id = req.params.id;
+  let result = await recipeModel.delRecipeCommentById(comment_id);
+  res.json({ msg: 'ok' });
+}
+
+async function updateRecipeComment(req, res) {
+  let comment_id = req.params.id;
+  let comment = req.body.comment;
+  let result = await recipeModel.updateRecipeCommentById(comment_id, comment);
+  res.json({ msg: 'ok' });
+}
+
 module.exports = {
   getRecipeList,
   getRecipeDetail,
@@ -230,4 +243,6 @@ module.exports = {
   updateRecipe,
   delRciepMaterial,
   updateRecipeStep,
+  delRecipeComment,
+  updateRecipeComment,
 };
