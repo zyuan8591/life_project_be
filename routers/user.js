@@ -60,5 +60,6 @@ router.put('/forgotpassword', reqistetRules, userController.forgotpasswordasync)
 
 //取得會員點數
 router.get('/points', userController.getPoints);
+router.post('/points', userController.postPoints);
 
 module.exports = router;

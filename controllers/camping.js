@@ -223,7 +223,8 @@ async function joinuser(req, res) {
 
 // user collect
 async function userCollects(req, res) {
-  //
+  const activityState = ['即將開團', '開團中', '已成團', '開團已截止'];
+
   let [collectResult] = await pool.execute('SELECT * FROM activity_camping_collect WHERE user_id = ?', [req.session.user.id]);
 
   let campingIds = collectResult.map((users) => users.activity_id);
@@ -236,6 +237,19 @@ async function userCollects(req, res) {
 
   let [result] = await pool.query(`SELECT * FROM activity_camping WHERE id in (?)`, [campingIds]);
   // console.log(result);
+
+  result = result.map((d) => {
+    let todayDate = Number(moment().format('YYYYMMDD'));
+    let startDate = parseInt(d.start_date.replace(/-/g, ''));
+    let endDate = parseInt(d.end_date.replace(/-/g, ''));
+    let state = '';
+    let count = d.pepcount;
+    if (startDate < todayDate && endDate < todayDate) state = activityState[3];
+    if (startDate <= todayDate && endDate >= todayDate) state = activityState[1];
+    if (d.join_limit === count) state = activityState[2];
+    if (startDate > todayDate && endDate > todayDate) state = activityState[0];
+    return { ...d, state };
+  });
   //
   let total = result.length;
   // console.log(total);
@@ -258,6 +272,8 @@ async function userCollects(req, res) {
 
 // user join History
 async function joinHistory(req, res) {
+  const activityState = ['即將開團', '開團中', '已成團', '開團已截止'];
+
   let [joinResult] = await pool.execute('SELECT * FROM activity_camping_join WHERE user_id = ?', [req.session.user.id]);
 
   let campingIds = joinResult.map((users) => users.activity_id);
@@ -271,7 +287,20 @@ async function joinHistory(req, res) {
 
   let [result] = await pool.query(`SELECT * FROM activity_camping c WHERE id in (?) AND c.activity_end_date < ${todayDate}`, [campingIds]);
   // console.log(result);
-  //
+
+  result = result.map((d) => {
+    let todayDate = Number(moment().format('YYYYMMDD'));
+    let startDate = parseInt(d.start_date.replace(/-/g, ''));
+    let endDate = parseInt(d.end_date.replace(/-/g, ''));
+    let state = '';
+    let count = d.pepcount;
+    if (startDate < todayDate && endDate < todayDate) state = activityState[3];
+    if (startDate <= todayDate && endDate >= todayDate) state = activityState[1];
+    if (d.join_limit === count) state = activityState[2];
+    if (startDate > todayDate && endDate > todayDate) state = activityState[0];
+    return { ...d, state };
+  });
+
   let total = result.length;
   // console.log(total);
   const perPage = 5;
@@ -372,15 +401,13 @@ async function backstageAllData(req, res) {
 
 // add camping
 async function postCampingAdd(req, res) {
-  // console.log(req.body);
   let [camping] = await pool.execute('SELECT * FROM activity_camping c WHERE valid = 1 AND c.title = ?', [req.body.title]);
   // console.log(camping.length);
-  // TODO: add map
   if (camping.length !== 0) return res.json({ message: '此活動標題已存在' });
   // return res.status(400).json({ message: '此活動標題已存在' });
 
   let todayDate = moment().format('YYYY-MM-DD');
-  // console.log(req.body);
+  // console.log('body', req.body);
   let newAddress = req.body.countyName + req.body.address;
   // console.log(countyName, newAddress);
   let result = await pool.execute(
@@ -400,9 +427,9 @@ async function postCampingAdd(req, res) {
       req.body.endDate,
       req.body.actInt,
       req.body.actLodging,
-      '',
-      '',
-      '',
+      req.files[0].originalname,
+      req.files[1].originalname,
+      req.files[2].originalname,
       todayDate,
       1,
       '',
@@ -410,9 +437,66 @@ async function postCampingAdd(req, res) {
     ]
   );
 
-  console.log('addCamping', result);
-
+  console.log('files', req.files, result);
+  // console.log('fileName', req.files[0].originalname);
   res.json({ message: '新增成功' });
+}
+
+// put
+async function putCampingUpdate(req, res) {
+  let todayDate = moment().format('YYYY-MM-DD');
+  let newAddress = req.body.countyName + req.body.address;
+  // console.log(newAddress);
+  console.log('req.files', req.files);
+  console.log('req.body', req.body);
+  let { photoChange1, photoChange2, photoChange3 } = req.body;
+  let change = [photoChange1, photoChange2, photoChange3]
+    .map((d, i) => {
+      if (d === 'false') return i + 1;
+    })
+    .filter((d) => d);
+
+  let img = [req.body.photoOrgin1, req.body.photoOrgin2, req.body.photoOrgin3];
+  for (let i = 0; i < req.files.length; i++) {
+    img[change[i] - 1] = req.files[i].originalname;
+  }
+
+  console.log('img', img);
+
+  let result = await pool.execute(
+    `UPDATE activity_camping SET location=?,title=?,place=?,address=?,lat=?,lng=?,activity_start_date=?,activity_end_date=?,price=?,join_limit=?,start_date=?,end_date=?,activity_about=?,activity_lodging=?,img1=?,img2=?,img3=?, create_time=? WHERE id=? `,
+    [
+      req.body.county,
+      req.body.title,
+      req.body.place,
+      newAddress,
+      req.body.lat,
+      req.body.lng,
+      req.body.actStartDate,
+      req.body.actEndDate,
+      req.body.price,
+      req.body.pepCount,
+      req.body.startDate,
+      req.body.endDate,
+      req.body.actInt,
+      req.body.actLodging,
+      img[0],
+      img[1],
+      img[2],
+      todayDate,
+      req.body.campingId,
+    ]
+  );
+  console.log('updateResult', result);
+  res.json({ message: '修改成功' });
+}
+// del
+async function putCampingDel(req, res) {
+  const campingId = req.params.campingId;
+  console.log(campingId);
+  // let [result] = await pool.execute('UPDATE activity_camping SET valid=? WHERE id = ?', [0, campingId]);
+  // console.log('del', result);
+  res.json({ message: '刪除成功' });
 }
 
 module.exports = {
@@ -428,4 +512,6 @@ module.exports = {
   joinHistory,
   backstageAllData,
   postCampingAdd,
+  putCampingUpdate,
+  putCampingDel,
 };
