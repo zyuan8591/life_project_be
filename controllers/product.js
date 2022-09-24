@@ -19,6 +19,7 @@ async function getProductList(req, res) {
   let offset = perPage * (page - 1);
   // console.log('total', total, 'lastpage', lastPage, 'offset', offset, 'perPage', perPage);
   let data = await productModel.getProductList(productName, productCate, perPage, offset, brand, smallThan, biggerThan, sort);
+  console.log(total);
   res.json({
     pagination: {
       total,

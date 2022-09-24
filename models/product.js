@@ -50,7 +50,7 @@ async function getProductList(productName = '', productCate, perPage, offset, br
     [`%${productName}%`, perPage, offset]
   );
   console.log('productCateSql', productCateSql);
-  // console.log(data[0]);
+  // console.log('length', data);
   return data[0];
 }
 
@@ -72,7 +72,7 @@ async function getProductById(id) {
 async function getBrandList(brand) {
   // console.log(brand);
   let [data] = await pool.query(`SELECT * FROM company WHERE name LIKE ?`, [`%${brand}%`]);
-  // console.log(data);
+  console.log('pageTotal', data.length);
   return data;
 }
 
