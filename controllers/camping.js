@@ -490,12 +490,13 @@ async function putCampingUpdate(req, res) {
   console.log('updateResult', result);
   res.json({ message: '修改成功' });
 }
+
 // del
 async function putCampingDel(req, res) {
-  const campingId = req.params.campingId;
-  console.log(campingId);
-  // let [result] = await pool.execute('UPDATE activity_camping SET valid=? WHERE id = ?', [0, campingId]);
-  // console.log('del', result);
+  const { campingId } = req.params;
+  // console.log(campingId);
+  let [result] = await pool.execute('UPDATE activity_camping SET valid=? WHERE id = ?', [0, campingId]);
+  console.log('del', result);
   res.json({ message: '刪除成功' });
 }
 

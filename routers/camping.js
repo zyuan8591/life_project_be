@@ -64,10 +64,11 @@ router.post('/campingJoin/:campingId', authMid.checkLogin, campingController.pos
 
 // Backstage
 router.get('/backstage', campingController.backstageAllData);
+
 // post camping
 router.post('/campingAdd', uploader.array('photo1'), campingController.postCampingAdd);
 router.put('/campingUpdate', uploader.array('photo1'), campingController.putCampingUpdate);
-router.put('/campingDel/:camping', campingController.putCampingDel);
+router.put('/campingDel/:campingId', campingController.putCampingDel);
 
 router.delete('/campingJoin/:campingId', authMid.checkLogin, campingController.postDeleteJoin);
 router.get('/getUserJoin/:campingId', authMid.checkLogin, campingController.joinuser);
