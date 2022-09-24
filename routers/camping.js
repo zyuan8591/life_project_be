@@ -32,7 +32,7 @@ const uploader = multer({
   // 過濾檔案的大小
   limits: {
     // 1k = 1024 => 200k = 200 * 1024
-    fileSize: 1000 * 1024,
+    fileSize: 4000 * 1024,
   },
 });
 router.get('/', campingController.getCampingList);
