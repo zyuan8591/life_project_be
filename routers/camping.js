@@ -15,6 +15,7 @@ const storage = multer.diskStorage({
   filename: function (req, file, cb) {
     // 原始檔名 file.originalname
     cb(null, file.originalname);
+    // console.log('file', file);
   },
 });
 
@@ -31,7 +32,7 @@ const uploader = multer({
   // 過濾檔案的大小
   limits: {
     // 1k = 1024 => 200k = 200 * 1024
-    fileSize: 1000 * 1024,
+    fileSize: 4000 * 1024,
   },
 });
 router.get('/', campingController.getCampingList);
@@ -63,8 +64,11 @@ router.post('/campingJoin/:campingId', authMid.checkLogin, campingController.pos
 
 // Backstage
 router.get('/backstage', campingController.backstageAllData);
+
 // post camping
 router.post('/campingAdd', uploader.array('photo1'), campingController.postCampingAdd);
+router.put('/campingUpdate', uploader.array('photo1'), campingController.putCampingUpdate);
+router.put('/campingDel/:campingId', campingController.putCampingDel);
 
 router.delete('/campingJoin/:campingId', authMid.checkLogin, campingController.postDeleteJoin);
 router.get('/getUserJoin/:campingId', authMid.checkLogin, campingController.joinuser);
