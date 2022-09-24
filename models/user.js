@@ -34,4 +34,9 @@ async function getpoints(user_id) {
   return data;
 }
 
-module.exports = { getuser, putuser, putpassword, inspectionEmail, getpoints };
+//寫進點數資料庫
+async function postpoints(user_id, point, event, creatTime) {
+  await pool.execute('INSERT INTO user_points (user_id,point,event,time) VALUES(?,?,?,?)', [user_id, point, event, creatTime]);
+}
+
+module.exports = { getuser, putuser, putpassword, inspectionEmail, getpoints, postpoints };
