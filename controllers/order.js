@@ -117,6 +117,9 @@ async function postOrder(req, res) {
 
   let { productItems, picnicItems, campingItems } = req.body;
   // console.log(prouductItems, picnicItems, campingItems);
+  productItems.sort(function (a, b) {
+    return a.id - b.id;
+  });
   let productCartItem = productItems
     .filter((v) => v.ischecked === true)
     .map((d) => {
@@ -153,9 +156,6 @@ async function postOrder(req, res) {
 
   let productId = productCartItem.map((v) => {
     return v[1];
-  });
-  productId.sort((a, b) => {
-    return a - b;
   });
   let productSales = productCartItem.map((v) => {
     return v[4];
