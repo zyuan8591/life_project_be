@@ -10,6 +10,11 @@ async function getOrderPayment() {
   return data;
 }
 
+async function getOrderStatus() {
+  let [data] = await pool.execute('SELECT * FROM order_status');
+  return data;
+}
+
 async function getOrderCount(user, status) {
   let sql = 'SELECT COUNT(*) AS total FROM orders WHERE valid = 1 ';
   let sqlParams = [];
@@ -55,7 +60,7 @@ async function getOrders(status, user, perPage, offset, id) {
   // console.log(sqlParams);
 
   let ordersResult = await pool.execute(sql + sqlPages, sqlParams);
-  return ordersResult;
+  return ordersResult[0];
 }
 
 async function getOrderById() {
@@ -79,4 +84,4 @@ async function postOrderDetailById(cartItem) {
   return result;
 }
 
-module.exports = { getOrderDelivery, getOrderPayment, getOrderCount, getOrders, getOrderById, postOrderById, postOrderDetailById };
+module.exports = { getOrderDelivery, getOrderPayment, getOrderStatus, getOrderCount, getOrders, getOrderById, postOrderById, postOrderDetailById };

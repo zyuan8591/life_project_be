@@ -2,6 +2,7 @@ const userModel = require('../models/user');
 const { validationResult } = require('express-validator');
 const argon2 = require('argon2');
 const pool = require('../utils/db');
+const date = require('date-and-time');
 
 //get 會員資料
 async function getUser(req, res) {
@@ -75,6 +76,7 @@ async function getPoints(req, res) {
   let lastPage = Math.ceil(total / perPage);
   const offset = perPage * (page - 1);
   let data = await userModel.getpoints(user_id);
+  let alldata = await userModel.getpoints(user_id);
   console.log('points', data);
   data = data.slice(offset, offset + perPage);
   res.json({
@@ -85,7 +87,19 @@ async function getPoints(req, res) {
       lastPage,
     },
     data,
+    alldata,
   });
+}
+//新增點數事件
+async function postPoints(req, res) {
+  let user_id = req.session.user.id;
+  let { point, event } = req.body;
+  const now = new Date();
+  let creatTime = date.format(now, 'YYYY/MM/DD');
+  await userModel.postpoints(user_id, point, event, creatTime);
+  //同步user點數
+  await userModel.updatapoints(user_id);
+  res.json({ msg: '點數使用成功' });
 }
 
 module.exports = {
@@ -95,4 +109,5 @@ module.exports = {
   forgotemail,
   forgotpasswordasync,
   getPoints,
+  postPoints,
 };

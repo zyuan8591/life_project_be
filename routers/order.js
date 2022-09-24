@@ -11,6 +11,8 @@ router.get('/delivery', orderController.getOrderDeliveryList);
 // GET order_payment
 router.get('/payment', orderController.getOrderPaymentList);
 
+router.get('/status', orderController.getOrderStatusList);
+
 // POST order /api/1.0/orders/order
 router.post('/order', orderController.postOrder);
 

@@ -118,4 +118,10 @@ router.put('/:id', uploader.single('image'), authMiddleware.checkLogin, recipeCo
 // PUT step /api/1.0/recipe/5/step
 router.put('/:id/step', authMiddleware.checkLogin, stepUploader.array('img'), recipeController.updateRecipeStep);
 
+// DEL comment /api/1.0/recipes/comment/5
+router.delete('/comment/:id', authMiddleware.checkLogin, recipeController.delRecipeComment);
+
+// PUT comment /api/1.0/recipes/comment/5
+router.put('/comment/:id', authMiddleware.checkLogin, recipeController.updateRecipeComment);
+
 module.exports = router;
