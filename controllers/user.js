@@ -92,15 +92,13 @@ async function getPoints(req, res) {
 }
 //新增點數事件
 async function postPoints(req, res) {
-  let user_id = 1;
+  let user_id = req.session.user.id;
   let { point, event } = req.body;
   const now = new Date();
   let creatTime = date.format(now, 'YYYY/MM/DD');
   await userModel.postpoints(user_id, point, event, creatTime);
-  //SUM
-  let [total] = await pool.execute('SELECT SUM(point) AS point FROM user_points WHERE user_id = ?', [user_id]);
-  total = total[0].point;
-  await pool.execute('UPDATE users SET points=? WHERE id=?', [total, user_id]);
+  //同步user點數
+  await userModel.updatapoints(user_id);
   res.json({ msg: '點數使用成功' });
 }
 
