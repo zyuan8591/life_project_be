@@ -219,6 +219,16 @@ async function delRecipeMaterialById(recipe_id) {
   return result;
 }
 
+async function delRecipeCommentById(comment_id) {
+  let result = await pool.execute('DELETE FROM recipe_comment WHERE id = ?', [comment_id]);
+  return result;
+}
+
+async function updateRecipeCommentById(comment_id, comment) {
+  let result = await pool.execute('UPDATE recipe_comment SET content = ? WHERE id = ?', [comment, comment_id]);
+  return result;
+}
+
 module.exports = {
   getRecipeCount,
   getRecipeList,
@@ -241,4 +251,6 @@ module.exports = {
   delRecipeMaterialById,
   updateRecipe,
   updateRecipeStep,
+  delRecipeCommentById,
+  updateRecipeCommentById,
 };
