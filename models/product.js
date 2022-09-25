@@ -23,7 +23,7 @@ async function getProductList(productName = '', productCate, perPage, offset, br
   let sortSql = null;
 
   if (sort == 1) {
-    sortSql = 'ORDER BY id DESC';
+    sortSql = 'ORDER BY sales DESC';
   } else if (sort == 2) {
     sortSql = 'ORDER BY created_time DESC';
   } else if (sort == 3) {
