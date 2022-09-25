@@ -20,7 +20,8 @@ router.get('/like', authMiddleware.checkLogin, productController.getProductLike)
 
 // GET /products/1/recommend
 router.get('/recommend', productController.getRandomProductRecommend);
-
+//GET /products/userlike
+router.get('/userlike', authMiddleware.checkLogin, productController.getUserProductLike);
 // get product for id
 // GET /products/1
 router.get('/:id', productController.getProductDetail);
@@ -30,6 +31,9 @@ router.get('/:id/detailImg', productController.getProductDetailImg);
 
 // GET /products/1/comment
 router.get('/:id/productComment', productController.getProductComment);
+
+// GET /products/1/backstage
+router.get('/:brandId/backstage', productController.getProductByBrand);
 
 // POST /products/1/comment
 router.post('/:id/comment', authMiddleware.checkLogin, productController.writeProductComment);

@@ -15,6 +15,7 @@ async function getRecipeList(req, res) {
   let searchLike = [];
   if (req.session.user && userLike === 'true') {
     searchLike = await recipeModel.getRecipeLikeByUser(req.session.user.id);
+    if (searchLike.length === 0) return res.json({ pagination: { total: 0, perPage: 0, page: 0, lastPage: 0 }, data: [] });
     console.log(req.session.user.id);
     console.log('searchlike', searchLike);
   }
@@ -211,6 +212,19 @@ async function updateRecipeStep(req, res) {
   res.json({ message: 'ok' });
 }
 
+async function delRecipeComment(req, res) {
+  let comment_id = req.params.id;
+  let result = await recipeModel.delRecipeCommentById(comment_id);
+  res.json({ msg: 'ok' });
+}
+
+async function updateRecipeComment(req, res) {
+  let comment_id = req.params.id;
+  let comment = req.body.comment;
+  let result = await recipeModel.updateRecipeCommentById(comment_id, comment);
+  res.json({ msg: 'ok' });
+}
+
 module.exports = {
   getRecipeList,
   getRecipeDetail,
@@ -229,4 +243,6 @@ module.exports = {
   updateRecipe,
   delRciepMaterial,
   updateRecipeStep,
+  delRecipeComment,
+  updateRecipeComment,
 };

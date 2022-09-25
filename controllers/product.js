@@ -1,5 +1,6 @@
 const productModel = require('../models/product');
 const moment = require('moment');
+const pool = require('../utils/db');
 
 async function getIndexProduct(req, res) {
   let id = [28, 24, 26, 32, 39, 69, 57, 80, 75, 117, 140, 123];
@@ -93,9 +94,7 @@ async function removeProductLike(req, res) {
 
 async function getRandomProductRecommend(req, res) {
   let { category } = req.query;
-  // console.log('category', category);
-  // let total = await productModel.getProductCount(category);
-  // console.log('total', total);
+
   let randomNumberData = await productModel.getRandomProductNumber(category);
   let randomNumber = [];
   randomNumberData.map((v) => {
@@ -104,7 +103,7 @@ async function getRandomProductRecommend(req, res) {
 
   let randomProduct = [];
   let randomProductNumber = [];
-  for (let i = 0; i < 9; i++) {
+  for (let i = 0; i < 12; i++) {
     while (randomProduct.length < i + 1) {
       let choose = Math.floor(Math.random() * randomNumber.length);
       if (!randomProduct.includes(choose)) randomProduct.push(choose);
@@ -115,6 +114,48 @@ async function getRandomProductRecommend(req, res) {
   console.log(randomProductNumber);
   let data = await productModel.getRandomProductRecommend(randomProductNumber);
   res.json(data);
+}
+async function getUserProductLike(req, res) {
+  let user_id = req.session.user.id;
+  const perPage = 5;
+  const page = req.query.page || 1;
+  let [total] = await pool.execute('SELECT COUNT(*) AS total FROM product_like JOIN product ON product_like.product_id = product.id WHERE user_id = ?', [user_id]);
+  total = total[0].total;
+  let lastPage = Math.ceil(total / perPage);
+  const offset = perPage * (page - 1);
+  let data = await productModel.getUserProductLike(user_id);
+  data = data.slice(offset, offset + perPage);
+  res.json({
+    pagination: {
+      total,
+      perPage,
+      page,
+      lastPage,
+    },
+    data,
+  });
+}
+
+async function getProductByBrand(req, res) {
+  let { brandId } = req.params;
+  let { page, perPage } = req.query;
+  page = page ? parseInt(page) : 1;
+  perPage = perPage ? parseInt(perPage) : 5;
+  let total = await productModel.getProductCount(brandId);
+  let lastPage = Math.ceil(total / perPage);
+  let offset = perPage * (page - 1);
+  let data = await productModel.getProductByBrand(brandId, offset);
+  console.log(brandId);
+  res.json({
+    pagination: {
+      total,
+      perPage,
+      page,
+      lastPage,
+      offset,
+    },
+    data,
+  });
 }
 module.exports = {
   getIndexProduct,
@@ -129,4 +170,6 @@ module.exports = {
   getProductLike,
   removeProductLike,
   getRandomProductRecommend,
+  getUserProductLike,
+  getProductByBrand,
 };

@@ -33,9 +33,9 @@ async function getMemberPicnicData(req, res) {
 }
 async function picnicOfficalJoin(req, res) {
   const userId = req.session.user.id;
-
+  //TODO:官方活動修改
   let [joinResult] = await pool.execute(
-    'SELECT activity_pincnic_official.id AS picnic_id , activity_pincnic_official.user_id, activity_pincnic_official.location, activity_pincnic_official.address, activity_pincnic_official.activity_date, activity_pincnic_official.activity_state, activity_pincnic_official.price, activity_pincnic_official.join_limit, activity_pincnic_official.picnic_title, activity_pincnic_official.place_name, activity_pincnic_official.intr, activity_pincnic_official.img1, activity_pincnic_official.start_date,activity_pincnic_official.end_date, activity_pincnic_official.valid, activity_picnic_official_join.user_id FROM activity_pincnic_official JOIN activity_picnic_official_join ON activity_pincnic_official.id = activity_picnic_official_join.picnic_id WHERE activity_picnic_official_join.user_id = ?',
+    'SELECT activity_pincnic_official.id AS picnic_id , activity_pincnic_official.user_id, activity_pincnic_official.location, activity_pincnic_official.address, activity_pincnic_official.activity_date, activity_picnic_state.activity_state, activity_pincnic_official.price, activity_pincnic_official.join_limit, activity_pincnic_official.picnic_title, activity_pincnic_official.place_name, activity_pincnic_official.intr, activity_pincnic_official.img1, activity_pincnic_official.start_date,activity_pincnic_official.end_date, activity_pincnic_official.valid, activity_picnic_official_join.user_id FROM activity_pincnic_official JOIN activity_picnic_official_join ON activity_pincnic_official.id = activity_picnic_official_join.picnic_id JOIN activity_picnic_state ON activity_pincnic_official.activity_state=activity_picnic_state.id WHERE activity_picnic_official_join.user_id = ?',
     [userId]
   );
 
@@ -58,11 +58,13 @@ async function picnicOfficalJoin(req, res) {
 }
 async function picnicOffacialCollect(req, res) {
   const userId = req.session.user.id;
+
   let [collectResult] = await pool.execute(
     'SELECT activity_pincnic_official.id AS picnic_id , activity_pincnic_official.user_id AS creater_id, activity_pincnic_official.location, activity_pincnic_official.address, activity_pincnic_official.activity_date, activity_pincnic_official.activity_state, activity_pincnic_official.price, activity_pincnic_official.join_limit, activity_pincnic_official.picnic_title, activity_pincnic_official.place_name, activity_pincnic_official.intr, activity_pincnic_official.img1, activity_pincnic_official.start_date,activity_pincnic_official.end_date, activity_pincnic_official.valid, picnic_official_collect.user_id FROM activity_pincnic_official JOIN picnic_official_collect ON activity_pincnic_official.id = picnic_official_collect.picnic_id WHERE picnic_official_collect.user_id = ?',
     [userId]
   );
-
+  // console.log('測試', userId);
+  // res.json({ msg: '有收到' });
   const perPage = 5;
   const page = req.query.page || 1;
   let total = collectResult.length;
@@ -111,8 +113,9 @@ async function getMemberPicnicGroupData(req, res) {
 async function picnicGroupJoin(req, res) {
   const userId = req.session.user.id;
 
+  //TODO:活動狀態&&主辦人 JOIN
   let [joinResult] = await pool.execute(
-    'SELECT activity_picnic_private.id AS picnic_id , activity_picnic_private.create_user_id AS creater_id, activity_picnic_private.location, activity_picnic_private.address, activity_picnic_private.activity_date, activity_picnic_private.activity_state, activity_picnic_private.price, activity_picnic_private.join_limit, activity_picnic_private.picnic_title, activity_picnic_private.place_name, activity_picnic_private.intr, activity_picnic_private.img1, activity_picnic_private.start_date,activity_picnic_private.end_date, activity_picnic_private.valid, activity_picnic_private_join.join_user_id FROM activity_picnic_private JOIN activity_picnic_private_join ON activity_picnic_private.id = activity_picnic_private_join.picnic_id WHERE activity_picnic_private_join.join_user_id = ?',
+    'SELECT activity_picnic_private.id AS picnic_id , users.name AS creater_id, activity_picnic_private.location, activity_picnic_private.address, activity_picnic_private.activity_date, activity_picnic_state.activity_state, activity_picnic_private.price, activity_picnic_private.join_limit, activity_picnic_private.picnic_title, activity_picnic_private.place_name, activity_picnic_private.intr, activity_picnic_private.img1, activity_picnic_private.start_date,activity_picnic_private.end_date, activity_picnic_private.valid, activity_picnic_private_join.join_user_id FROM activity_picnic_private JOIN activity_picnic_private_join ON activity_picnic_private.id = activity_picnic_private_join.picnic_id JOIN activity_picnic_state ON activity_picnic_private.activity_state=activity_picnic_state.id JOIN users ON activity_picnic_private.create_user_id=users.id WHERE activity_picnic_private_join.join_user_id = ?',
     [userId]
   );
 

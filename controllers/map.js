@@ -41,9 +41,9 @@ async function getMapId(req, res) {
   const campingId = req.params.campingId;
 
   // get asideId
-  let [asideIdresult] = await pool.execute(`SELECT * FROM activity_map WHERE valid=1 AND id=?`, [campingId]);
+  let [asideIdresult] = await pool.execute(`SELECT * FROM activity_camping WHERE valid=1 AND id=?`, [campingId]);
 
-  let [result] = await pool.execute(`SELECT * FROM activity_map WHERE valid=1 AND id=?`, [campingId]);
+  let [result] = await pool.execute(`SELECT * FROM activity_camping WHERE valid=1 AND id=?`, [campingId]);
 
   // lat,lng
   let [nowLat] = result.map((v) => {
@@ -56,7 +56,7 @@ async function getMapId(req, res) {
   // console.log(nowLat, nowLng);
 
   let [campingResult] = await pool.execute(
-    `SELECT * ,( 3959 * acos( cos( radians(${nowLat}) ) * cos( radians( lat ) ) * cos( radians(lng) - radians(${nowLng})) + sin(radians(${nowLat})) * sin( radians(lat)))) AS distance FROM activity_map WHERE type=1 HAVING distance < 20 ORDER BY distance ASC`
+    `SELECT * ,( 3959 * acos( cos( radians(${nowLat}) ) * cos( radians( lat ) ) * cos( radians(lng) - radians(${nowLng})) + sin(radians(${nowLat})) * sin( radians(lat)))) AS distance FROM activity_camping WHERE valid = 1 HAVING distance < 20 ORDER BY distance ASC`
   );
 
   campingResult = campingResult.filter((v) => {
