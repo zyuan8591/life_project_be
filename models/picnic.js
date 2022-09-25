@@ -78,7 +78,8 @@ async function delCollectOfficial(userId, officialId) {
 // ------- 開團活動 join -------
 // 確認是否有此活動
 async function getJoinById(groupId) {
-  let [result] = await pool.execute('SELECT * FROM activity_picnic_private_join WHERE picnic_id = ?', [groupId]);
+  let [result] = await pool.execute('SELECT * FROM activity_picnic_private WHERE id = ?', [groupId]);
+  console.log(result);
   if (result.length > 0) {
     return result[0];
   } else {
@@ -90,18 +91,20 @@ async function addJoinPicnic(userId, groupId) {
   let [result] = await pool.execute('INSERT INTO activity_picnic_private_join ( join_user_id, picnic_id) VALUES (?,?)', [userId, groupId]);
   console.log('addJoinPicnic', result);
 }
+
 // 此會員所有加入活動
 async function getJoinPicnic(userId) {
   let [result] = await pool.execute('SELECT * FROM activity_picnic_private_join WHERE join_user_id = ?', [userId]);
   return result;
 }
 // 抓已參加人數
-async function getPrivateJoinCount(picnic_id) {
+async function getPrivateJoinCount(groupId) {
   let [result] = await pool.execute(`SELECT activity_picnic_private_join.picnic_id, COUNT(1) AS people FROM activity_picnic_private_join WHERE picnic_id = ? GROUP BY picnic_id`, [
-    picnic_id,
+    groupId,
   ]);
+  console.log('getPrivateJoinCount', result);
   if (result.length < 1) {
-    result = { people: 0, picnic_id: picnic_id };
+    result = { people: 0, picnic_id: groupId };
   }
   return result;
 }
@@ -151,6 +154,12 @@ async function delCollectPrivate(userId, groupId) {
   console.log('delCollectPrivate', data);
 }
 
+//
+async function delCreate(userId, groupId) {
+  let [data] = await pool.execute('DELETE FROM activity_picnic_private WHERE create_user_id = ? AND id = ?', [userId, groupId]);
+  console.log('delCreate', data);
+}
+
 module.exports = {
   getJoinId,
   addJoinOfficial,
@@ -169,7 +178,7 @@ module.exports = {
   addCollectPrivate,
   getCollectPrivate,
   delCollectPrivate,
-  // getPrivateJoinCount,
   getPrivateJoinCount,
   getJoinPrivate,
+  delCreate,
 };

@@ -77,6 +77,9 @@ router.post('/collectGroupAddJoin/:groupId', authMid.checkLogin, picnicControlle
 // delete collect
 router.delete('/collectGroupDelJoin/:groupId', authMid.checkLogin, picnicController.postPrivateDeleteCollect);
 
+// del create from data
+router.delete('/groupCreate/:groupId', authMid.checkLogin, picnicController.postPrivateDeleteCreate);
+
 // 開團列表詳細頁
 router.get('/group/:groupId', picnicController.getPrivateDetail);
 
@@ -106,5 +109,6 @@ const uploader = multer({
 });
 
 router.post('/create', uploader.single('image'), picnicController.getFormData);
+router.put('/createUpdate/:groupId', uploader.single('image'), picnicController.getUpdateFormData);
 
 module.exports = router;
