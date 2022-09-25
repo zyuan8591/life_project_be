@@ -206,8 +206,8 @@ async function postOrder(req, res) {
   let productId = productCartItem.map((v) => {
     return v[1];
   });
-  productId.sort((a, b) => {
-    return a - b;
+  productItems.sort(function (a, b) {
+    return a.id - b.id;
   });
   let productSales = productCartItem.map((v) => {
     return v[4];
