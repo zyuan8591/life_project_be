@@ -47,10 +47,10 @@ const reqistetRules = [
 router.get('/', authMid.checkLogin, userController.getUser);
 
 //PUT usetDate
-router.put('/', uploader.single('photo'), userController.putUser);
+router.put('/', authMid.checkLogin, uploader.single('photo'), userController.putUser);
 
 //密碼修改
-router.put('/password', reqistetRules, userController.putPassword);
+router.put('/password', authMid.checkLogin, reqistetRules, userController.putPassword);
 
 //忘記密碼-確認會員信箱
 router.post('/forgotpassword', userController.forgotemail);
@@ -59,6 +59,7 @@ router.post('/forgotpassword', userController.forgotemail);
 router.put('/forgotpassword', reqistetRules, userController.forgotpasswordasync);
 
 //取得會員點數
-router.get('/points', userController.getPoints);
+router.get('/points', authMid.checkLogin, userController.getPoints);
+router.post('/points', authMid.checkLogin, userController.postPoints);
 
 module.exports = router;

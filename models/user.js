@@ -34,4 +34,14 @@ async function getpoints(user_id) {
   return data;
 }
 
-module.exports = { getuser, putuser, putpassword, inspectionEmail, getpoints };
+//寫進點數資料庫
+async function postpoints(user_id, point, event, creatTime) {
+  await pool.execute('INSERT INTO user_points (user_id,point,event,time) VALUES(?,?,?,?)', [user_id, point, event, creatTime]);
+}
+
+async function updatapoints(user_id) {
+  let [total] = await pool.execute('SELECT SUM(point) AS point FROM user_points WHERE user_id = ?', [user_id]);
+  total = total[0].point;
+  await pool.execute('UPDATE users SET points=? WHERE id=?', [total, user_id]);
+}
+module.exports = { getuser, putuser, putpassword, inspectionEmail, getpoints, postpoints, updatapoints };

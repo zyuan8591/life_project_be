@@ -12,20 +12,30 @@ async function getOrderPaymentList(req, res) {
   res.json(data);
 }
 
+async function getOrderStatusList(req, res) {
+  let data = await orderModel.getOrderStatus();
+  res.json(data);
+}
+
 async function getOrderList(req, res) {
   let { page, perPage, status } = req.query;
 
+  // console.log(status);
+
   let user = req.session.user.id;
+  // console.log(user);
 
   // pagination
   page = page ? parseInt(page) : 1;
   perPage = perPage ? parseInt(perPage) : 5;
-  let total = await orderModel.getOrderCount(user, status);
+  let total = await orderModel.getOrderCount(user, parseInt(status));
   // console.log(total);
   let lastPage = Math.ceil(total / perPage);
   let offset = perPage * (page - 1);
 
-  let data = await orderModel.getOrders(status, user, perPage, offset);
+  let data = await orderModel.getOrders(parseInt(status), user, perPage, offset);
+
+  console.log(total, perPage, page, lastPage, data);
 
   res.json({
     pagination: {
@@ -42,10 +52,12 @@ async function getOrderDetail(req, res) {
   let id = req.params.id;
   // let user = req.query.user;
   let user = req.session.user.id;
+  // console.log(id, user);
 
   let orderData = await orderModel.getOrders('', user, '', '', id);
-  // console.log(orderData[0]);
-  let orderInfo = orderData[0].map((v, i) => {
+  // console.log('orderdata', orderData);
+
+  let [orderInfo] = orderData.map((v, i) => {
     return {
       id: v.id,
       totalPrice: v.order_total,
@@ -58,22 +70,50 @@ async function getOrderDetail(req, res) {
     };
   });
 
-  let data = [{ ...orderInfo[0], product: [], picnic: [], camping: [] }];
+  // console.log(orderInfo);
+
+  let data = [{ ...orderInfo, product: [], picnic: [], camping: [] }];
 
   let cartData = await orderModel.getOrderById();
-  // console.log(cartData[0]);
+  // console.log('cart0', cartData[0]);
   cartData[0]
     .filter((v, i) => {
       return v.order_id == id;
     })
+
     .map((d, i) => {
-      // console.log(d);
-      data[0].product.push({ id: d.product_id, name: d.product_name, quantity: d.quantity, price: d.product_price, img: d.product_img });
-      data[0].picnic.push({ id: d.picnic_id, title: d.picnic_title, img: d.picnic_img, price: d.picnic_price, quantity: d.quantity });
-      data[0].camping.push({ id: d.camping_id, title: d.camping_title, img: d.camping_img, price: d.camping_price, quantity: d.quantity });
+      console.log(d);
+      data[0].product.push({
+        id: d.product_id,
+        name: d.product_name,
+        quantity: d.quantity,
+        price: d.product_price,
+        img: d.product_img,
+        ischecked: true,
+        itemTotal: d.quantity * d.product_price,
+      });
+      data[0].picnic.push({
+        id: d.picnic_id,
+        name: d.picnic_title,
+        img: d.picnic_img,
+        price: d.picnic_price,
+        quantity: d.quantity,
+        ischecked: true,
+        itemTotal: d.quantity * d.picnic_price,
+      });
+      data[0].camping.push({
+        id: d.camping_id,
+        name: d.camping_title,
+        img: d.camping_img,
+        price: d.camping_price,
+        quantity: d.quantity,
+        ischecked: true,
+        itemTotal: d.quantity * d.camping_price,
+      });
     });
 
   console.log('data', data);
+  res.json({ data });
 }
 
 async function postOrder(req, res) {
@@ -89,14 +129,6 @@ async function postOrder(req, res) {
   // TODO: point
   let point_discount = 10;
 
-  // 綠界
-  // let values = 123;
-
-  // if (payment === 3) {
-  //   await axios.post('https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5', values);
-  // }
-  // return;
-
   // console.log(req.session);
   if (req.session.user === null) return;
 
@@ -106,10 +138,31 @@ async function postOrder(req, res) {
   let orderData = [user_id, status, delivery, payment, cartTotal, create_time, name, phone, fullAddress, email, memo, point_discount];
 
   let insertOrders = await orderModel.postOrderById(orderData);
-  // console.log('insertOrders', insertOrders);
+  console.log('insertOrders', insertOrders);
 
   let order_id = insertOrders[0].insertId;
   // console.log('orderId', order_id);
+
+  // 綠界
+  // let MerchantId = 3002607;
+  // let HashKey = 'pwFHCqoQZGmho4w6';
+  // let HashIV = 'EkRm7iFT261dpevs';
+  // let EncryptTypt = 1;
+  // let MerchantTradeNo = order_id;
+  // let MerchantTradeDate = create_time;
+  // let PaymentType = 'aio';
+  // let TotalAmount = 100;
+  // let TradeDesc = 'nice';
+  // let ItemName = 'fuck';
+  // let ReturnURL = ' http://localhost:3001/orders/order';
+  // let ChoosePayment = 'ALL';
+
+  // if (payment === 3) {
+  //   await axios.post('https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5', values);
+  // }
+  // return;
+
+  // checkmacvalue
 
   // insert into order_detail
   //            [[1, 87, 0, 0, 2], [], ...]
@@ -145,7 +198,7 @@ async function postOrder(req, res) {
   // console.log(cartItem);
 
   let orderDetailResult = await orderModel.postOrderDetailById(cartItem);
-  console.log('orderDetailResult', orderDetailResult);
+  // console.log('orderDetailResult', orderDetailResult);
 
   // if (req.body.payment === 3) {
   //   axios;
@@ -187,4 +240,4 @@ async function postOrder(req, res) {
   res.json({ order_id });
 }
 
-module.exports = { getOrderDeliveryList, getOrderPaymentList, getOrderList, getOrderDetail, postOrder };
+module.exports = { getOrderDeliveryList, getOrderPaymentList, getOrderStatusList, getOrderList, getOrderDetail, postOrder };
