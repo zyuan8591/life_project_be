@@ -1,5 +1,6 @@
 const productModel = require('../models/product');
 const moment = require('moment');
+const pool = require('../utils/db');
 
 async function getIndexProduct(req, res) {
   let id = [28, 24, 26, 32, 39, 69, 57, 80, 75, 117, 140, 123];
@@ -116,8 +117,23 @@ async function getRandomProductRecommend(req, res) {
 }
 async function getUserProductLike(req, res) {
   let user_id = req.session.user.id;
+  const perPage = 5;
+  const page = req.query.page || 1;
+  let [total] = await pool.execute('SELECT COUNT(*) AS total FROM product_like JOIN product ON product_like.product_id = product.id WHERE user_id = ?', [user_id]);
+  total = total[0].total;
+  let lastPage = Math.ceil(total / perPage);
+  const offset = perPage * (page - 1);
   let data = await productModel.getUserProductLike(user_id);
-  res.json(data);
+  data = data.slice(offset, offset + perPage);
+  res.json({
+    pagination: {
+      total,
+      perPage,
+      page,
+      lastPage,
+    },
+    data,
+  });
 }
 
 async function getProductByBrand(req, res) {
