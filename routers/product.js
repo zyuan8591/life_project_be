@@ -20,7 +20,8 @@ router.get('/like', authMiddleware.checkLogin, productController.getProductLike)
 
 // GET /products/1/recommend
 router.get('/recommend', productController.getRandomProductRecommend);
-
+//GET /products/userlike
+router.get('/userlike', authMiddleware.checkLogin, productController.getUserProductLike);
 // get product for id
 // GET /products/1
 router.get('/:id', productController.getProductDetail);
