@@ -28,6 +28,10 @@ async function getProductList(productName = '', productCate, perPage, offset, br
     sortSql = 'ORDER BY created_time DESC';
   } else if (sort == 3) {
     sortSql = 'ORDER BY company_id ASC';
+  } else if (sort == 4) {
+    sortSql = 'ORDER BY price ASC';
+  } else if (sort == 5) {
+    sortSql = 'ORDER BY price DESC';
   } else {
     sortSql = '';
   }
