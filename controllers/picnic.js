@@ -394,7 +394,7 @@ async function getPrivateList(req, res) {
     let [currentJoin] = await pool.execute(`SELECT * FROM activity_picnic_private_join WHERE picnic_id = ${data[i].id}`);
     data[i] = { ...data[i], currentJoin: currentJoin.length };
   }
-  console.log(data);
+  // console.log(data);
   res.json({
     pagination: {
       total,

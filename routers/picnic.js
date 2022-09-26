@@ -44,7 +44,7 @@ router.post('/collectAddJoin/:officialId', authMid.checkLogin, picnicController.
 
 // delete collect
 router.delete('/collectDelJoin/:officialId', authMid.checkLogin, picnicController.postOfficiaDeleteCollect);
-// ss
+
 // 詳細頁
 router.get('/official/:officialId', picnicController.getPicnicDetail);
 

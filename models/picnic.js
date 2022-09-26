@@ -79,7 +79,7 @@ async function delCollectOfficial(userId, officialId) {
 // 確認是否有此活動
 async function getJoinById(groupId) {
   let [result] = await pool.execute('SELECT * FROM activity_picnic_private WHERE id = ?', [groupId]);
-  console.log(result);
+  // console.log(result);
   if (result.length > 0) {
     return result[0];
   } else {
