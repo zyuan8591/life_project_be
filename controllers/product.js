@@ -20,6 +20,7 @@ async function getProductList(req, res) {
   let offset = perPage * (page - 1);
   // console.log('total', total, 'lastpage', lastPage, 'offset', offset, 'perPage', perPage);
   let data = await productModel.getProductList(productName, productCate, perPage, offset, brand, smallThan, biggerThan, sort);
+  console.log(total);
   res.json({
     pagination: {
       total,
@@ -39,6 +40,7 @@ async function getProductCategory(req, res) {
 
 async function getProductDetail(req, res) {
   let id = req.params.id;
+  // let id1 = req.query
   let data = await productModel.getProductById(id);
   res.json(data);
 }
@@ -115,6 +117,28 @@ async function getRandomProductRecommend(req, res) {
   let data = await productModel.getRandomProductRecommend(randomProductNumber);
   res.json(data);
 }
+
+async function addProduct(req, res) {
+  // let company_id = req.session.user.id;
+  let { name, price, brand, inventory, cate, spec, color, intro } = req.body;
+  // console.log(req.files[1].originalname);
+  let photo1 = req.files[0].originalname;
+  let photo2 = req.files[1].originalname;
+  let photo3 = req.files[2].originalname;
+  let detail_img = req.files[3].originalname;
+
+  // console.log(photo1, photo2, photo3);
+  let now = moment().format();
+  // console.log(req.body, now);
+  productModel.addProduct(name, price, brand, inventory, cate, spec, color, intro, photo1, photo2, photo3, now, detail_img);
+
+  res.json({ message: '新增成功' });
+}
+
+async function getProductRank(req, res) {
+  let data = await productModel.getProductRank();
+  res.json(data);
+}
 async function getUserProductLike(req, res) {
   let user_id = req.session.user.id;
   const perPage = 5;
@@ -123,7 +147,7 @@ async function getUserProductLike(req, res) {
   total = total[0].total;
   let lastPage = Math.ceil(total / perPage);
   const offset = perPage * (page - 1);
-  let data = await productModel.getUserProductLike(user_id);
+  let data = await productModel.getProductLike(user_id);
   data = data.slice(offset, offset + perPage);
   res.json({
     pagination: {
@@ -136,27 +160,39 @@ async function getUserProductLike(req, res) {
   });
 }
 
-async function getProductByBrand(req, res) {
-  let { brandId } = req.params;
-  let { page, perPage } = req.query;
-  page = page ? parseInt(page) : 1;
-  perPage = perPage ? parseInt(perPage) : 5;
-  let total = await productModel.getProductCount(brandId);
-  let lastPage = Math.ceil(total / perPage);
-  let offset = perPage * (page - 1);
-  let data = await productModel.getProductByBrand(brandId, offset);
-  console.log(brandId);
-  res.json({
-    pagination: {
-      total,
-      perPage,
-      page,
-      lastPage,
-      offset,
-    },
-    data,
-  });
+async function productUpdate(req, res) {
+  console.log('req.files', req.files);
+  console.log('req.body', req.body);
+  let { id, detailId, name, price, inventory, cate, spec, color, intro } = req.body;
+  // console.log(req.files[1].originalname);
+  // let photo1 = req.files[0].originalname;
+  // let photo2 = req.files[1].originalname;
+  // let photo3 = req.files[2].originalname;
+  // let detail_img = req.files[3].originalname;
+  console.log('detailId', detailId);
+  let { photoChange1, photoChange2, photoChange3, photoChange4 } = req.body;
+  let change = [photoChange1, photoChange2, photoChange3, photoChange4]
+    .map((d, i) => {
+      if (d === 'false') return i + 1;
+    })
+    .filter((d) => d);
+
+  let img = [req.body.photoOrgin1, req.body.photoOrgin2, req.body.photoOrgin3, req.body.photoOrgin4];
+  for (let i = 0; i < req.files.length; i++) {
+    img[change[i] - 1] = req.files[i].originalname;
+  }
+  productModel.productUpdate(id, detailId, name, price, inventory, cate, spec, color, intro, img);
+  console.log('img', img);
+  res.json({ message: '修改成功' });
 }
+
+async function productDelete(req, res) {
+  let { id } = req.query;
+  console.log(id);
+  productModel.productDelete(id);
+  res.json({ message: '刪除成功' });
+}
+
 module.exports = {
   getIndexProduct,
   getProductList,
@@ -170,6 +206,9 @@ module.exports = {
   getProductLike,
   removeProductLike,
   getRandomProductRecommend,
+  addProduct,
+  getProductRank,
+  productUpdate,
+  productDelete,
   getUserProductLike,
-  getProductByBrand,
 };

@@ -118,7 +118,7 @@ async function getOrderDetail(req, res) {
 
 async function postOrder(req, res) {
   // console.log('body:', req.body);
-
+  console.log(req.body.point);
   // insert into orders
   let { delivery, payment, productTotal, picnicTotal, campingTotal, name, phone, email, memo, cityName, areaName, address } = req.body;
 
@@ -170,12 +170,15 @@ async function postOrder(req, res) {
 
   let { productItems, picnicItems, campingItems } = req.body;
   // console.log(prouductItems, picnicItems, campingItems);
+  productItems.sort(function (a, b) {
+    return a.id - b.id;
+  });
   let productCartItem = productItems
     .filter((v) => v.ischecked === true)
     .map((d) => {
       return [order_id, d.id, 0, 0, d.quantity];
     });
-  // console.log(productCartItem);
+  console.log(productCartItem);
 
   let campingCartItem = campingItems
     .filter((v) => v.ischecked === true)
@@ -201,6 +204,41 @@ async function postOrder(req, res) {
   //   axios;
   // }
   // console.log(address);
+
+  // product
+  let productId = productCartItem.map((v) => {
+    return v[1];
+  });
+  productItems.sort(function (a, b) {
+    return a.id - b.id;
+  });
+  let productSales = productCartItem.map((v) => {
+    return v[4];
+  });
+  let productResult = await orderModel.getProductSales(productId);
+  // let { inventory, sales } = productResult[0];
+  // console.log(productResult[0]);
+  let productArr = productResult[0];
+  let inventory = productArr.map((v) => {
+    return v.inventory;
+  });
+  let sales = productArr.map((v) => {
+    return v.sales;
+  });
+  console.log('id', productId, 'sales', productSales);
+  console.log('inventory', inventory, 'sales', sales);
+  for (let i = 0; i < productId.length; i++) {
+    // let inventory = productResult[i].inventory;
+    // let sales = productResult[i].sales;
+    let inventoryResult = inventory[i] - productSales[i];
+    let salesResult = sales[i] + productSales[i];
+
+    console.log('id', productId[i]);
+    console.log('inventoryResult', inventoryResult);
+    console.log('salesResult', salesResult);
+
+    let updateProductResult = await orderModel.updateProductSales(inventoryResult, salesResult, productId[i]);
+  }
 
   res.json({ order_id });
 }
