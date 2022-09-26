@@ -83,7 +83,6 @@ async function postOrderDetailById(cartItem) {
   let result = await pool.query('INSERT INTO order_detail (order_id, product_id, camping_id, picnic_id, quantity) VALUES ?', [cartItem]);
   return result;
 }
-
 async function getProductSales(productId) {
   let result = await pool.query(`SELECT inventory, sales FROM product WHERE id in (?)`, [productId]);
   console.log(productId);
@@ -95,4 +94,15 @@ async function updateProductSales(inventoryResult, salesResult, product_id) {
   return result;
 }
 
-module.exports = { getOrderDelivery, getOrderPayment, getOrderCount, getOrders, getOrderById, postOrderById, postOrderDetailById, getProductSales, updateProductSales };
+module.exports = {
+  getOrderDelivery,
+  getOrderPayment,
+  getOrderStatus,
+  getOrderCount,
+  getOrders,
+  getOrderById,
+  postOrderById,
+  postOrderDetailById,
+  getProductSales,
+  updateProductSales,
+};
