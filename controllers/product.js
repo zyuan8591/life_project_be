@@ -147,7 +147,7 @@ async function getUserProductLike(req, res) {
   total = total[0].total;
   let lastPage = Math.ceil(total / perPage);
   const offset = perPage * (page - 1);
-  let data = await productModel.getUserProductLike(user_id);
+  let data = await productModel.getProductLike(user_id);
   data = data.slice(offset, offset + perPage);
   res.json({
     pagination: {
