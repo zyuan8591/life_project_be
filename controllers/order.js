@@ -170,12 +170,15 @@ async function postOrder(req, res) {
 
   let { productItems, picnicItems, campingItems } = req.body;
   // console.log(prouductItems, picnicItems, campingItems);
+  productItems.sort(function (a, b) {
+    return a.id - b.id;
+  });
   let productCartItem = productItems
     .filter((v) => v.ischecked === true)
     .map((d) => {
       return [order_id, d.id, 0, 0, d.quantity];
     });
-  // console.log(productCartItem);
+  console.log(productCartItem);
 
   let campingCartItem = campingItems
     .filter((v) => v.ischecked === true)

@@ -1,10 +1,11 @@
 const pool = require('../utils/db');
 
-async function getProductCount(productName, productCate, brand, smallThan, biggerThan) {
+async function getProductCount(productName = '', productCate, brand, smallThan, biggerThan) {
   let productCateSql = '';
   let productBrandSql = '';
   let biggerThanSql = '';
   let smallThanSql = '';
+  console.log('count', brand);
   parseInt(productCate) ? (productCateSql = `AND category = ${productCate}`) : '';
   parseInt(brand) ? (productBrandSql = `AND company_id in (${brand})`) : '';
   parseInt(biggerThan) ? (biggerThanSql = ` AND price >= ${biggerThan}`) : '';
@@ -22,7 +23,7 @@ async function getProductList(productName = '', productCate, perPage, offset, br
   let sortSql = null;
 
   if (sort == 1) {
-    sortSql = 'ORDER BY id DESC';
+    sortSql = 'ORDER BY sales DESC';
   } else if (sort == 2) {
     sortSql = 'ORDER BY created_time DESC';
   } else if (sort == 3) {
@@ -49,7 +50,7 @@ async function getProductList(productName = '', productCate, perPage, offset, br
     [`%${productName}%`, perPage, offset]
   );
   console.log('productCateSql', productCateSql);
-  // console.log(data[0]);
+  // console.log('length', data);
   return data[0];
 }
 
@@ -71,7 +72,7 @@ async function getProductById(id) {
 async function getBrandList(brand) {
   // console.log(brand);
   let [data] = await pool.query(`SELECT * FROM company WHERE name LIKE ?`, [`%${brand}%`]);
-  // console.log(data);
+  console.log('pageTotal', data.length);
   return data;
 }
 
@@ -123,18 +124,45 @@ async function getRandomProductRecommend(randomProductNumber) {
 
   return data;
 }
-async function getUserProductLike(user_id) {
-  let [data] = await pool.query(
-    `SELECT product_like.*, product.name, product.img, product.color,product.price FROM product_like JOIN product ON product_like.product_id = product.id WHERE user_id = ? `,
-    [user_id]
+
+async function addProduct(name, price, brand, inventory, cate, spec, color, intro, photo1 = '', photo2 = '', photo3 = '', now, detail_img) {
+  let result = await pool.execute(
+    `INSERT INTO product (name, price, company_id, inventory, category, spec, color, intro, img, img2, img3, created_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [name, price, brand, inventory, cate, spec, color, intro, photo1, photo2, photo3, now]
   );
-  // console.log('getLike', user_id);
+  let [{ insertId }] = result;
+
+  let detailResult = await pool.execute(`INSERT INTO product_detail (product_id, img) VALUES (?, ?)`, [insertId, detail_img]);
+  console.log('addProduct', result);
+  console.log('detail_img', detailResult);
+}
+
+async function getProductRank() {
+  let [data] = await pool.query(`SELECT * FROM product ORDER BY sales DESC LIMIT 15 `);
   return data;
 }
 
-async function getProductByBrand(brandId, offset) {
-  let [data] = await pool.query(`SELECT * FROM product WHERE company_id = ? LIMIT ? OFFSET ?`, [brandId, 5, offset]);
-  return data;
+async function productUpdate(id, detailId, name, price, inventory, cate, spec, color, intro, img) {
+  let result = await pool.execute(`UPDATE product SET name=?, price=?, inventory=?, category=?, spec=?, color=?, intro=?, img= ?, img2=?, img3=? WHERE id=?`, [
+    name,
+    price,
+    inventory,
+    cate,
+    spec,
+    color,
+    intro,
+    img[0],
+    img[1],
+    img[2],
+    id,
+  ]);
+  let detailResult = await pool.execute(`UPDATE product_detail SET img = ? WHERE id = ?`, [img[3], detailId]);
+  console.log('update', result, 'detailResult', detailResult);
+}
+
+async function productDelete(id) {
+  let result = await pool.execute(`UPDATE product SET valid = 0 WHERE id = ?`, [id]);
+  console.log(result);
 }
 
 module.exports = {
@@ -151,6 +179,8 @@ module.exports = {
   removeProductLike,
   getRandomProductNumber,
   getRandomProductRecommend,
-  getUserProductLike,
-  getProductByBrand,
+  addProduct,
+  getProductRank,
+  productUpdate,
+  productDelete,
 };
