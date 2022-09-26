@@ -1,3 +1,4 @@
+const res = require('express/lib/response');
 const pool = require('../utils/db');
 
 async function getRecipeCount(user, name = '', recipeId, recipeCate, productCate) {
@@ -228,6 +229,15 @@ async function updateRecipeCommentById(comment_id, comment) {
   return result;
 }
 
+async function getRecipeName() {
+  let result = await pool.execute('SELECT name FROM recipe');
+  return result;
+}
+async function getRecipeMaterialName() {
+  let result = await pool.execute('SELECT name FROM recipe_material');
+  return result;
+}
+
 module.exports = {
   getRecipeCount,
   getRecipeList,
@@ -252,4 +262,6 @@ module.exports = {
   updateRecipeStep,
   delRecipeCommentById,
   updateRecipeCommentById,
+  getRecipeName,
+  getRecipeMaterialName,
 };
