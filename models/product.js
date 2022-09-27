@@ -54,13 +54,12 @@ async function getProductList(productName = '', productCate, perPage, offset, br
     FROM product a
     JOIN product_category b ON a.category = b.id
     JOIN company c ON a.company_id = c.id
-    LEFT JOIN product_discount d ON a.company_id = d.company_id
+    LEFT JOIN product_discount d ON a.company_id = d.company
     WHERE valid = 1 ${productCateSql} ${productBrandSql} ${biggerThanSql} ${smallThanSql} AND a.name LIKE ? 
     GROUP BY a.id
     ${sortSql} 
     LIMIT ? OFFSET ?`,
     [`%${productName}%`, perPage, offset]
-
   );
   console.log('productCateSql', productCateSql);
   // console.log('length', data);
@@ -75,7 +74,7 @@ async function getProductCategory() {
 
 async function getProductById(id) {
   let [data] = await pool.query(
-    `SELECT product.*, product_category.name AS product_category_name, company.name AS brand, d.discount AS discount, d.discount_name AS discount_name, d.start_time AS start_time, d.end_time AS end_time FROM product JOIN product_category ON product.category = product_category.id JOIN company ON product.company_id = company.id LEFT JOIN product_discount d ON product.company_id = d.company_id WHERE product.id in (?)`,
+    `SELECT product.*, product_category.name AS product_category_name, company.name AS brand, d.discount AS discount, d.discount_name AS discount_name, d.start_time AS start_time, d.end_time AS end_time FROM product JOIN product_category ON product.category = product_category.id JOIN company ON product.company_id = company.id LEFT JOIN product_discount d ON product.company_id = d.company WHERE product.id in (?)`,
     [id]
   );
   // console.log(data);
@@ -183,6 +182,17 @@ async function productDiscount() {
   return data;
 }
 
+async function addDiscount(name, discount, start_time, end_time, company) {
+  let result = await pool.execute(`INSERT INTO product_discount (name, discount, start_time, end_time, company) VALUES (?, ?, ?, ?, ?)`, [
+    name,
+    discount,
+    start_time,
+    end_time,
+    company,
+  ]);
+  console.log(result);
+}
+
 module.exports = {
   getProductList,
   getProductCategory,
@@ -201,5 +211,6 @@ module.exports = {
   getProductRank,
   productUpdate,
   productDelete,
-  productDiscount
+  productDiscount,
+  addDiscount,
 };

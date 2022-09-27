@@ -198,6 +198,17 @@ async function productDiscount(req, res) {
   res.json(data);
 }
 
+async function addDiscount(req, res) {
+  console.log('req.files', req.files);
+  console.log('req.body', req.body);
+  let { name, discount, start_time, end_time, company } = req.body;
+
+  console.log(name, discount, start_time, end_time, company);
+  productModel.addDiscount(name, discount, start_time, end_time, company);
+
+  res.json({ message: '新增成功' });
+}
+
 module.exports = {
   getIndexProduct,
   getProductList,
@@ -217,4 +228,5 @@ module.exports = {
   productDelete,
   getUserProductLike,
   productDiscount,
+  addDiscount,
 };
