@@ -193,6 +193,11 @@ async function productDelete(req, res) {
   res.json({ message: '刪除成功' });
 }
 
+async function productDiscount(req, res) {
+  let data = await productModel.productDiscount();
+  res.json(data);
+}
+
 module.exports = {
   getIndexProduct,
   getProductList,
@@ -211,4 +216,5 @@ module.exports = {
   productUpdate,
   productDelete,
   getUserProductLike,
+  productDiscount,
 };

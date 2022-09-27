@@ -50,8 +50,17 @@ async function getProductList(productName = '', productCate, perPage, offset, br
   parseInt(biggerThan) ? (biggerThanSql = ` AND price >= ${biggerThan}`) : '';
   parseInt(smallThan) ? (smallThanSql = ` AND price <= ${smallThan}`) : '';
   let data = await pool.query(
-    `SELECT product.*, product_category.name AS product_category_name, company.name AS brand FROM product JOIN product_category ON product.category = product_category.id JOIN company ON product.company_id = company.id WHERE valid = 1 ${productCateSql} ${productBrandSql} ${biggerThanSql} ${smallThanSql} AND product.name LIKE ? ${sortSql} LIMIT ? OFFSET ?`,
+    `SELECT a.*, b.name AS product_category_name, c.name AS brand, d.discount AS discount , d.discount_name AS discount_name, d.start_time AS start_time, d.end_time AS end_time
+    FROM product a
+    JOIN product_category b ON a.category = b.id
+    JOIN company c ON a.company_id = c.id
+    LEFT JOIN product_discount d ON a.company_id = d.company_id
+    WHERE valid = 1 ${productCateSql} ${productBrandSql} ${biggerThanSql} ${smallThanSql} AND a.name LIKE ? 
+    GROUP BY a.id
+    ${sortSql} 
+    LIMIT ? OFFSET ?`,
     [`%${productName}%`, perPage, offset]
+
   );
   console.log('productCateSql', productCateSql);
   // console.log('length', data);
@@ -66,7 +75,7 @@ async function getProductCategory() {
 
 async function getProductById(id) {
   let [data] = await pool.query(
-    `SELECT product.*, product_category.name AS product_category_name, company.name AS brand FROM product JOIN product_category ON product.category = product_category.id JOIN company ON product.company_id = company.id WHERE product.id in (?)`,
+    `SELECT product.*, product_category.name AS product_category_name, company.name AS brand, d.discount AS discount, d.discount_name AS discount_name, d.start_time AS start_time, d.end_time AS end_time FROM product JOIN product_category ON product.category = product_category.id JOIN company ON product.company_id = company.id LEFT JOIN product_discount d ON product.company_id = d.company_id WHERE product.id in (?)`,
     [id]
   );
   // console.log(data);
@@ -169,6 +178,11 @@ async function productDelete(id) {
   console.log(result);
 }
 
+async function productDiscount() {
+  let [data] = await pool.query(`SELECT product.*, product_discount.* FROM product LEFT JOIN product_discount ON product.id = product_discount.product_id `);
+  return data;
+}
+
 module.exports = {
   getProductList,
   getProductCategory,
@@ -187,4 +201,5 @@ module.exports = {
   getProductRank,
   productUpdate,
   productDelete,
+  productDiscount
 };
