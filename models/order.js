@@ -36,7 +36,7 @@ async function getOrderCount(user, status) {
 async function getOrders(status, user, perPage, offset, id) {
   // console.log(status);
   // console.log(user);
-  console.log(perPage, offset, 'testestsets');
+  // console.log(perPage, offset, 'testestsets');
   let sql =
     'SELECT orders.*, users.name AS user_name, order_status.order_status AS order_status, order_delivery.order_delivery AS order_delivery, order_payment.order_payment AS order_payment FROM orders JOIN users ON orders.user_id = users.id JOIN order_status ON orders.status_id = order_status.id JOIN order_delivery ON orders.delivery_id = order_delivery.id JOIN order_payment ON orders.payment_id = order_payment.id WHERE valid = 1 ';
   let sqlParams = [];
@@ -57,7 +57,7 @@ async function getOrders(status, user, perPage, offset, id) {
     sqlPages += ' LIMIT ? OFFSET ?';
     sqlParams.push(perPage, offset);
   }
-  console.log('sqlPages', sqlPages);
+  // console.log('sqlPages', sqlPages);
   // console.log(sqlParams);
 
   let ordersResult = await pool.execute(sql + sqlPages, sqlParams);
@@ -68,6 +68,7 @@ async function getOrderById() {
   let result = await pool.query(
     'SELECT order_detail.*, product.name AS product_name, product.price AS product_price, product.img AS product_img , activity_camping.title AS camping_title, activity_camping.price AS camping_price, activity_camping.img1 AS camping_img, activity_pincnic_official.picnic_title AS picnic_title, activity_pincnic_official.price AS picnic_price, activity_pincnic_official.img1 AS picnic_img FROM order_detail LEFT JOIN product ON order_detail.product_id = product.id LEFT JOIN activity_camping ON order_detail.camping_id = activity_camping.id LEFT JOIN activity_pincnic_official ON order_detail.picnic_id = activity_pincnic_official.id;'
   );
+  // console.log(result);
 
   return result;
 }
@@ -86,7 +87,7 @@ async function postOrderDetailById(cartItem) {
 }
 async function getProductSales(productId) {
   let result = await pool.query(`SELECT inventory, sales FROM product WHERE id in (?)`, [productId]);
-  console.log(productId);
+  // console.log(productId);
   return result;
 }
 

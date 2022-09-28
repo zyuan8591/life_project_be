@@ -13,8 +13,16 @@ router.get('/payment', orderController.getOrderPaymentList);
 
 router.get('/status', orderController.getOrderStatusList);
 
+router.post('/pay', orderController.postOrderPay);
+
 // POST order /api/1.0/orders/order
 router.post('/order', orderController.postOrder);
+
+// get ordreinfo /api/1.0/orders/orderinfo
+router.post('/orderinfo', orderController.postOrderInfo);
+
+// POST ecpay /api/1.0/orders/pay
+// router.post('/ecpay', orderController.postEcpay);
 
 // GET detail /api/1.0/orders/5
 router.get('/:id', orderController.getOrderDetail);
