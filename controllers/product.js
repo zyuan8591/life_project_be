@@ -193,6 +193,22 @@ async function productDelete(req, res) {
   res.json({ message: '刪除成功' });
 }
 
+async function productDiscount(req, res) {
+  let data = await productModel.productDiscount();
+  res.json(data);
+}
+
+async function addDiscount(req, res) {
+  // console.log('req.files', req.files);
+  console.log('req.body', req.body);
+  let { name, discount, start_time, end_time, company } = req.body;
+
+  console.log(name, discount, start_time, end_time, company);
+  productModel.addDiscount(name, discount, start_time, end_time, company);
+
+  res.json({ message: '新增成功' });
+}
+
 module.exports = {
   getIndexProduct,
   getProductList,
@@ -211,4 +227,6 @@ module.exports = {
   productUpdate,
   productDelete,
   getUserProductLike,
+  productDiscount,
+  addDiscount,
 };
