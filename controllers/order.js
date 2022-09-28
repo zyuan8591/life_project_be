@@ -315,9 +315,9 @@ async function postOrderInfo(req, res) {
       time: v.create_time,
     };
   });
-  //   // console.log(orderInfo);
+  // console.log('orderinfo', orderInfo);
   let TotalAmount = orderInfo.totalPrice;
-  // console.log(TotalAmount);
+  console.log('Totalamount', TotalAmount);
 
   // get order items ->
   // products -> [{name: xxx, quantity: 1, price: 5}]
