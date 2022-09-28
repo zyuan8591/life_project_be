@@ -405,9 +405,12 @@ async function postOrderPay(req, respond) {
         },
       },
     });
-    // res.set('Access-Control-Allow-Origin', '*');
     console.log(res);
-    respond.set('Access-Control-Allow-Origin', '*');
+    // respond.set('Access-Control-Allow-Origin', '*');
+    respond.header('Access-Control-Allow-Origin', 'http://localhost:3000');
+    respond.header('Access-Control-Allow-Methods', 'GET,POST,DELETE');
+    respond.header('Access-Control-Allow-Headers', 'Origin, X-Requested With, Content-Type, Accept');
+    // respond.redirect(res.body.info.paymentUrl.web);
     respond.redirect(res.body.info.paymentUrl.web);
     // console.log(res.body.info.paymentUrl.web);
   } catch (e) {
