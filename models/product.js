@@ -50,7 +50,7 @@ async function getProductList(productName = '', productCate, perPage, offset, br
   parseInt(biggerThan) ? (biggerThanSql = ` AND price >= ${biggerThan}`) : '';
   parseInt(smallThan) ? (smallThanSql = ` AND price <= ${smallThan}`) : '';
   let data = await pool.query(
-    `SELECT a.*, b.name AS product_category_name, c.name AS brand, d.discount AS discount , d.discount_name AS discount_name, d.start_time AS start_time, d.end_time AS end_time
+    `SELECT a.*, b.name AS product_category_name, c.name AS brand, d.discount AS discount , d.discount_name AS discount_name, d.start_time AS start_time, d.end_time AS end_time, d.company AS company
     FROM product a
     JOIN product_category b ON a.category = b.id
     JOIN company c ON a.company_id = c.id
@@ -183,7 +183,7 @@ async function productDiscount() {
 }
 
 async function addDiscount(name, discount, start_time, end_time, company) {
-  let result = await pool.execute(`INSERT INTO product_discount (name, discount, start_time, end_time, company) VALUES (?, ?, ?, ?, ?)`, [
+  let result = await pool.execute(`INSERT INTO product_discount (discount_name, discount, start_time, end_time, company) VALUES (?, ?, ?, ?, ?)`, [
     name,
     discount,
     start_time,

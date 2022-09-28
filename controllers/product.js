@@ -199,7 +199,7 @@ async function productDiscount(req, res) {
 }
 
 async function addDiscount(req, res) {
-  console.log('req.files', req.files);
+  // console.log('req.files', req.files);
   console.log('req.body', req.body);
   let { name, discount, start_time, end_time, company } = req.body;
 
