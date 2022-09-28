@@ -27,9 +27,18 @@ io.on('connection', (socket) => {
     console.log('socket: name from name', name);
   });
   // socket 「聽」MFEE27
-  socket.on('life', (msg) => {
+  socket.on('life', (message) => {
+    let { id, msg } = message;
     console.log('socket: msg from MFEE27', msg);
-    socket.broadcast.emit('chat', msg);
+    console.log('socket: msg from MFEE27', id);
+    // socket.broadcast.emit('chat', msg);
+    let life = 'life';
+    let userRoom = 'user' + id;
+    console.log(userRoom);
+    if (id !== 0) {
+      socket.broadcast.emit(life, { id, msg });
+      // socket.broadcast.emit('user1', { id, msg });
+    }
   });
 });
 
