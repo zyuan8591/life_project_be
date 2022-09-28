@@ -177,11 +177,6 @@ async function productDelete(id) {
   console.log(result);
 }
 
-async function productDiscount() {
-  let [data] = await pool.query(`SELECT product.*, product_discount.* FROM product LEFT JOIN product_discount ON product.id = product_discount.product_id `);
-  return data;
-}
-
 async function addDiscount(name, discount, start_time, end_time, company) {
   let result = await pool.execute(`INSERT INTO product_discount (discount_name, discount, start_time, end_time, company) VALUES (?, ?, ?, ?, ?)`, [
     name,
@@ -190,6 +185,16 @@ async function addDiscount(name, discount, start_time, end_time, company) {
     end_time,
     company,
   ]);
+  console.log(result);
+}
+
+async function getDiscount(company) {
+  let [data] = await pool.query(`SELECT * FROM product_discount WHERE company = ?`, [company]);
+  return data;
+}
+
+async function discountDelete(id) {
+  let result = await pool.execute(`DELETE FROM product_discount WHERE id = ?`, [id]);
   console.log(result);
 }
 
@@ -211,6 +216,7 @@ module.exports = {
   getProductRank,
   productUpdate,
   productDelete,
-  productDiscount,
   addDiscount,
+  getDiscount,
+  discountDelete,
 };
