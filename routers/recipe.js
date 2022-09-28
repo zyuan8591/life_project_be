@@ -76,6 +76,12 @@ router.get('/material', recipeController.getMaterialList);
 // GET /api/1.0/recipes/like
 router.get('/like', authMiddleware.checkLogin, recipeController.getUserRecipeLike);
 
+// GET /api/1.0/recipes/name
+router.get('/name', recipeController.getRecipeName);
+
+// GET /api/1.0/recipes/materialName
+router.get('/materialName', recipeController.getRecipeMaterialName);
+
 // GET detail /api/1.0/recipes/5
 router.get('/:id', recipeController.getRecipeDetail);
 
