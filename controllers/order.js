@@ -118,7 +118,7 @@ async function getOrderDetail(req, res) {
 
 async function postOrder(req, res) {
   // console.log('body:', req.body);
-
+  console.log(req.body.point);
   // insert into orders
   let { delivery, payment, productTotal, picnicTotal, campingTotal, name, phone, email, memo, cityName, areaName, address } = req.body;
 
@@ -206,9 +206,11 @@ async function postOrder(req, res) {
   // console.log(address);
 
   // product
-
   let productId = productCartItem.map((v) => {
     return v[1];
+  });
+  productItems.sort(function (a, b) {
+    return a.id - b.id;
   });
   let productSales = productCartItem.map((v) => {
     return v[4];
@@ -237,6 +239,7 @@ async function postOrder(req, res) {
 
     let updateProductResult = await orderModel.updateProductSales(inventoryResult, salesResult, productId[i]);
   }
+
   res.json({ order_id });
 }
 

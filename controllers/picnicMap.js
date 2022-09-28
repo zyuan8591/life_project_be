@@ -31,7 +31,7 @@ async function getMapList(req, res) {
 // :id
 async function getMapId(req, res) {
   const picnicId = req.params.picnicId;
-  console.log('id', picnicId);
+  // console.log('id', picnicId);
   // get asideId
   let [asideIdresult] = await pool.execute(`SELECT * FROM activity_pincnic_official WHERE valid=1 AND id=?`, [picnicId]);
 
@@ -45,12 +45,6 @@ async function getMapId(req, res) {
     return v.lng;
   });
   // console.log(nowLat, nowLng);
-
-  // TODO: 地圖地區
-  let [activityLocation] = await pool.execute(
-    'SELECT activity_pincnic_official.location,activity_picnic_location.location FROM activity_pincnic_official JOIN activity_picnic_location ON activity_pincnic_official.location = activity_picnic_location.id'
-  );
-  // console.log(activityLocation);
 
   let [picnicResult] = await pool.execute(
     `SELECT * ,( 3959 * acos( cos( radians(${nowLat}) ) * cos( radians( lat ) ) * cos( radians(lng) - radians(${nowLng})) + sin(radians(${nowLat})) * sin( radians(lat)))) AS distance FROM activity_pincnic_official HAVING distance < 3 ORDER BY distance ASC`
@@ -66,7 +60,7 @@ async function getMapId(req, res) {
   //     return picnicResult.location === l.id;
   //   });
   // });
-  console.log('location', picnicResult);
+  // console.log('location', picnicResult);
 
   let picnicResultL = picnicResult.length;
 

@@ -36,6 +36,7 @@ async function getOrderCount(user, status) {
 async function getOrders(status, user, perPage, offset, id) {
   // console.log(status);
   // console.log(user);
+  console.log(perPage, offset, 'testestsets');
   let sql =
     'SELECT orders.*, users.name AS user_name, order_status.order_status AS order_status, order_delivery.order_delivery AS order_delivery, order_payment.order_payment AS order_payment FROM orders JOIN users ON orders.user_id = users.id JOIN order_status ON orders.status_id = order_status.id JOIN order_delivery ON orders.delivery_id = order_delivery.id JOIN order_payment ON orders.payment_id = order_payment.id WHERE valid = 1 ';
   let sqlParams = [];
@@ -52,11 +53,11 @@ async function getOrders(status, user, perPage, offset, id) {
     sql += ' AND orders.id = ?';
     sqlParams.push(id);
   }
-  if (perPage && offset) {
+  if (perPage && JSON.stringify(offset)) {
     sqlPages += ' LIMIT ? OFFSET ?';
     sqlParams.push(perPage, offset);
   }
-  // console.log('sql', sql + sqlPages);
+  console.log('sqlPages', sqlPages);
   // console.log(sqlParams);
 
   let ordersResult = await pool.execute(sql + sqlPages, sqlParams);
@@ -83,7 +84,6 @@ async function postOrderDetailById(cartItem) {
   let result = await pool.query('INSERT INTO order_detail (order_id, product_id, camping_id, picnic_id, quantity) VALUES ?', [cartItem]);
   return result;
 }
-
 async function getProductSales(productId) {
   let result = await pool.query(`SELECT inventory, sales FROM product WHERE id in (?)`, [productId]);
   console.log(productId);
@@ -95,4 +95,15 @@ async function updateProductSales(inventoryResult, salesResult, product_id) {
   return result;
 }
 
-module.exports = { getOrderDelivery, getOrderPayment, getOrderCount, getOrders, getOrderById, postOrderById, postOrderDetailById, getProductSales, updateProductSales };
+module.exports = {
+  getOrderDelivery,
+  getOrderPayment,
+  getOrderStatus,
+  getOrderCount,
+  getOrders,
+  getOrderById,
+  postOrderById,
+  postOrderDetailById,
+  getProductSales,
+  updateProductSales,
+};

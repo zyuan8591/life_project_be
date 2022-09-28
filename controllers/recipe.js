@@ -9,6 +9,7 @@ async function getRecipeList(req, res) {
   let searchMaterial = [];
   if (materialName) {
     searchMaterial = await recipeModel.getMaterialByName(materialName);
+    if (searchMaterial.length === 0) return res.json({ pagination: { total: 0, perPage: 0, page: 0, lastPage: 0 }, data: [] });
   }
 
   // get recipe_id by user like
@@ -16,8 +17,6 @@ async function getRecipeList(req, res) {
   if (req.session.user && userLike === 'true') {
     searchLike = await recipeModel.getRecipeLikeByUser(req.session.user.id);
     if (searchLike.length === 0) return res.json({ pagination: { total: 0, perPage: 0, page: 0, lastPage: 0 }, data: [] });
-    console.log(req.session.user.id);
-    console.log('searchlike', searchLike);
   }
   // concat search material and user like list
   let recipeId = searchMaterial.concat(searchLike);

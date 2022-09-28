@@ -51,7 +51,6 @@ async function getRecipeList(sort, user, name, perPage, offset, recipeId, recipe
 
   // random recipe
   let randomSql = randomRecipe ? `AND recipe.id in (${randomRecipe})` : '';
-
   let data = null;
   if (recipeId.length !== 0) {
     data = await pool.query(

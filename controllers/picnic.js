@@ -16,7 +16,7 @@ async function getMemberPicnicData(req, res) {
   let lastPage = Math.ceil(total / perPage);
   const offset = perPage * (page - 1);
 
-  let [pageData] = await pool.execute(
+  let [result] = await pool.execute(
     `SELECT activity_pincnic_official.* , activity_picnic_state.activity_state , activity_picnic_location.location, IfNULL(c.people,0) AS currentJoin FROM activity_pincnic_official JOIN activity_picnic_state ON activity_pincnic_official.activity_state = activity_picnic_state.id JOIN activity_picnic_location ON activity_pincnic_official.location = activity_picnic_location.id LEFT JOIN (SELECT picnic_id, COUNT(1) AS people FROM activity_picnic_official_join GROUP BY picnic_id) c ON activity_pincnic_official.id = c.picnic_id WHERE valid = 1 LIMIT ? OFFSET ?`,
     [perPage, offset]
   );
@@ -28,23 +28,23 @@ async function getMemberPicnicData(req, res) {
       page,
       lastPage,
     },
-    pageData,
+    result,
   });
 }
 async function picnicOfficalJoin(req, res) {
   const userId = req.session.user.id;
   //TODO:官方活動修改
-  let [joinResult] = await pool.execute(
+  let [result] = await pool.execute(
     'SELECT activity_pincnic_official.id AS picnic_id , activity_pincnic_official.user_id, activity_pincnic_official.location, activity_pincnic_official.address, activity_pincnic_official.activity_date, activity_picnic_state.activity_state, activity_pincnic_official.price, activity_pincnic_official.join_limit, activity_pincnic_official.picnic_title, activity_pincnic_official.place_name, activity_pincnic_official.intr, activity_pincnic_official.img1, activity_pincnic_official.start_date,activity_pincnic_official.end_date, activity_pincnic_official.valid, activity_picnic_official_join.user_id FROM activity_pincnic_official JOIN activity_picnic_official_join ON activity_pincnic_official.id = activity_picnic_official_join.picnic_id JOIN activity_picnic_state ON activity_pincnic_official.activity_state=activity_picnic_state.id WHERE activity_picnic_official_join.user_id = ?',
     [userId]
   );
 
   const perPage = 5;
   const page = req.query.page || 1;
-  let total = joinResult.length;
+  let total = result.length;
   let lastPage = Math.ceil(total / perPage);
   const offset = perPage * (page - 1);
-  joinResult = joinResult.slice(offset, offset + perPage);
+  result = result.slice(offset, offset + perPage);
 
   res.json({
     pagination: {
@@ -53,13 +53,13 @@ async function picnicOfficalJoin(req, res) {
       page,
       lastPage,
     },
-    joinResult,
+    result,
   });
 }
 async function picnicOffacialCollect(req, res) {
   const userId = req.session.user.id;
 
-  let [collectResult] = await pool.execute(
+  let [result] = await pool.execute(
     'SELECT activity_pincnic_official.id AS picnic_id , activity_pincnic_official.user_id AS creater_id, activity_pincnic_official.location, activity_pincnic_official.address, activity_pincnic_official.activity_date, activity_pincnic_official.activity_state, activity_pincnic_official.price, activity_pincnic_official.join_limit, activity_pincnic_official.picnic_title, activity_pincnic_official.place_name, activity_pincnic_official.intr, activity_pincnic_official.img1, activity_pincnic_official.start_date,activity_pincnic_official.end_date, activity_pincnic_official.valid, picnic_official_collect.user_id FROM activity_pincnic_official JOIN picnic_official_collect ON activity_pincnic_official.id = picnic_official_collect.picnic_id WHERE picnic_official_collect.user_id = ?',
     [userId]
   );
@@ -67,10 +67,10 @@ async function picnicOffacialCollect(req, res) {
   // res.json({ msg: '有收到' });
   const perPage = 5;
   const page = req.query.page || 1;
-  let total = collectResult.length;
+  let total = result.length;
   let lastPage = Math.ceil(total / perPage);
   const offset = perPage * (page - 1);
-  collectResult = collectResult.slice(offset, offset + perPage);
+  result = result.slice(offset, offset + perPage);
 
   res.json({
     pagination: {
@@ -79,15 +79,17 @@ async function picnicOffacialCollect(req, res) {
       page,
       lastPage,
     },
-    collectResult,
+    result,
   });
 }
 async function getMemberPicnicGroupData(req, res) {
+  const userId = req.session.user.id;
   const perPage = 5;
   const page = req.query.page || 1;
 
   let [totalData] = await pool.execute(
-    'SELECT activity_picnic_private.* , activity_picnic_state.activity_state , activity_picnic_location.location FROM activity_picnic_private JOIN activity_picnic_state ON activity_picnic_private.activity_state = activity_picnic_state.id JOIN activity_picnic_location ON activity_picnic_private.location = activity_picnic_location.id WHERE valid = 1'
+    `SELECT activity_picnic_private.* , activity_picnic_state.activity_state , activity_picnic_location.location FROM activity_picnic_private JOIN activity_picnic_state ON activity_picnic_private.activity_state = activity_picnic_state.id JOIN activity_picnic_location ON activity_picnic_private.location = activity_picnic_location.id WHERE create_user_id=? ANd valid = 1`,
+    [userId]
   );
   // console.log(totalData);
 
@@ -95,9 +97,9 @@ async function getMemberPicnicGroupData(req, res) {
   let lastPage = Math.ceil(total / perPage);
   const offset = perPage * (page - 1);
 
-  let [pageData] = await pool.execute(
-    `SELECT activity_picnic_private.* , activity_picnic_state.activity_state , activity_picnic_location.location, IfNULL(c.people,0) AS currentJoin FROM activity_picnic_private JOIN activity_picnic_state ON activity_picnic_private.activity_state = activity_picnic_state.id JOIN activity_picnic_location ON activity_picnic_private.location = activity_picnic_location.id LEFT JOIN (SELECT picnic_id, COUNT(1) AS people FROM activity_picnic_private_join GROUP BY picnic_id) c ON activity_picnic_private.id = c.picnic_id WHERE valid = 1 LIMIT ? OFFSET ?`,
-    [perPage, offset]
+  let [result] = await pool.execute(
+    `SELECT activity_picnic_private.* , activity_picnic_state.activity_state , activity_picnic_location.location, IfNULL(c.people,0) AS currentJoin FROM activity_picnic_private JOIN activity_picnic_state ON activity_picnic_private.activity_state = activity_picnic_state.id JOIN activity_picnic_location ON activity_picnic_private.location = activity_picnic_location.id LEFT JOIN (SELECT picnic_id, COUNT(1) AS people FROM activity_picnic_private_join GROUP BY picnic_id) c ON activity_picnic_private.id = c.picnic_id WHERE create_user_id=? AND valid = 1 LIMIT ? OFFSET ?`,
+    [userId, perPage, offset]
   );
 
   res.json({
@@ -107,24 +109,24 @@ async function getMemberPicnicGroupData(req, res) {
       page,
       lastPage,
     },
-    pageData,
+    result,
   });
 }
 async function picnicGroupJoin(req, res) {
   const userId = req.session.user.id;
 
   //TODO:活動狀態&&主辦人 JOIN
-  let [joinResult] = await pool.execute(
+  let [result] = await pool.execute(
     'SELECT activity_picnic_private.id AS picnic_id , users.name AS creater_id, activity_picnic_private.location, activity_picnic_private.address, activity_picnic_private.activity_date, activity_picnic_state.activity_state, activity_picnic_private.price, activity_picnic_private.join_limit, activity_picnic_private.picnic_title, activity_picnic_private.place_name, activity_picnic_private.intr, activity_picnic_private.img1, activity_picnic_private.start_date,activity_picnic_private.end_date, activity_picnic_private.valid, activity_picnic_private_join.join_user_id FROM activity_picnic_private JOIN activity_picnic_private_join ON activity_picnic_private.id = activity_picnic_private_join.picnic_id JOIN activity_picnic_state ON activity_picnic_private.activity_state=activity_picnic_state.id JOIN users ON activity_picnic_private.create_user_id=users.id WHERE activity_picnic_private_join.join_user_id = ?',
     [userId]
   );
 
   const perPage = 5;
   const page = req.query.page || 1;
-  let total = joinResult.length;
+  let total = result.length;
   let lastPage = Math.ceil(total / perPage);
   const offset = perPage * (page - 1);
-  joinResult = joinResult.slice(offset, offset + perPage);
+  result = result.slice(offset, offset + perPage);
 
   res.json({
     pagination: {
@@ -133,7 +135,7 @@ async function picnicGroupJoin(req, res) {
       page,
       lastPage,
     },
-    joinResult,
+    result,
   });
 }
 async function picnicGroupCollect(req, res) {
@@ -392,7 +394,7 @@ async function getPrivateList(req, res) {
     let [currentJoin] = await pool.execute(`SELECT * FROM activity_picnic_private_join WHERE picnic_id = ${data[i].id}`);
     data[i] = { ...data[i], currentJoin: currentJoin.length };
   }
-  console.log(data);
+  // console.log(data);
   res.json({
     pagination: {
       total,

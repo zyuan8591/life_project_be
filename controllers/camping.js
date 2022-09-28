@@ -4,7 +4,7 @@ const campingModel = require('../models/camping');
 // campingData
 // /api/1.0/camping?state=1 & maxPrice=100 & minPrice=50 & maxPerson=20 & minPerson=10 & maxDate=20221010 & minPrice=20220910 & order=1 & search & page
 async function getCampingList(req, res) {
-  const { state, maxPrice, minPrice, maxDate, minDate, order, search, maxJoinTtl, minJoinTtl } = req.query;
+  const { state, maxPrice, minPrice, maxDate, minDate, order, search, maxJoinTtl, minJoinTtl, per } = req.query;
   const activityState = ['即將開團', '開團中', '已成團', '開團已截止'];
 
   // price & date
@@ -35,7 +35,7 @@ async function getCampingList(req, res) {
   }
 
   // page
-  const perPage = 12;
+  const perPage = parseInt(per) || 12;
   const page = req.query.page || 1;
   // total
   let [total] = await pool.execute('SELECT COUNT(*) AS total FROM activity_camping WHERE valid = 1');
