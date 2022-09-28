@@ -35,7 +35,7 @@ async function getCampingList(req, res) {
   }
 
   // page
-  const perPage = per || 12;
+  const perPage = parseInt(per) || 12;
   const page = req.query.page || 1;
   // total
   let [total] = await pool.execute('SELECT COUNT(*) AS total FROM activity_camping WHERE valid = 1');
