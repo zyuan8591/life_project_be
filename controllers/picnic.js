@@ -88,7 +88,7 @@ async function getMemberPicnicGroupData(req, res) {
   const page = req.query.page || 1;
 
   let [totalData] = await pool.execute(
-    `SELECT activity_picnic_private.* , activity_picnic_state.activity_state , activity_picnic_location.location FROM activity_picnic_private JOIN activity_picnic_state ON activity_picnic_private.activity_state = activity_picnic_state.id JOIN activity_picnic_location ON activity_picnic_private.location = activity_picnic_location.id WHERE create_user_id=? ANd valid = 1`,
+    `SELECT activity_picnic_private.*, activity_picnic_state.activity_state , activity_picnic_location.location FROM activity_picnic_private JOIN activity_picnic_state ON activity_picnic_private.activity_state = activity_picnic_state.id JOIN activity_picnic_location ON activity_picnic_private.location = activity_picnic_location.id WHERE create_user_id=? ANd valid = 1`,
     [userId]
   );
   // console.log(totalData);
@@ -98,7 +98,7 @@ async function getMemberPicnicGroupData(req, res) {
   const offset = perPage * (page - 1);
 
   let [result] = await pool.execute(
-    `SELECT activity_picnic_private.* , activity_picnic_state.activity_state , activity_picnic_location.location, IfNULL(c.people,0) AS currentJoin FROM activity_picnic_private JOIN activity_picnic_state ON activity_picnic_private.activity_state = activity_picnic_state.id JOIN activity_picnic_location ON activity_picnic_private.location = activity_picnic_location.id LEFT JOIN (SELECT picnic_id, COUNT(1) AS people FROM activity_picnic_private_join GROUP BY picnic_id) c ON activity_picnic_private.id = c.picnic_id WHERE create_user_id=? AND valid = 1 LIMIT ? OFFSET ?`,
+    `SELECT activity_picnic_private.*,activity_picnic_private.id AS picnic_id , activity_picnic_state.activity_state , activity_picnic_location.location, IfNULL(c.people,0) AS currentJoin FROM activity_picnic_private JOIN activity_picnic_state ON activity_picnic_private.activity_state = activity_picnic_state.id JOIN activity_picnic_location ON activity_picnic_private.location = activity_picnic_location.id LEFT JOIN (SELECT picnic_id, COUNT(1) AS people FROM activity_picnic_private_join GROUP BY picnic_id) c ON activity_picnic_private.id = c.picnic_id WHERE create_user_id=? AND valid = 1 LIMIT ? OFFSET ?`,
     [userId, perPage, offset]
   );
 

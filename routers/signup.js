@@ -33,8 +33,10 @@ router.post('/', reqistetRules, async (req, res) => {
   //取得註冊日期
   const now = new Date();
   let creatTime = date.format(now, 'YYYY/MM/DD');
+
+  let photo = '/userAvatar/alex.png';
   //寫進資料庫
-  await pool.execute('INSERT INTO users (name,email,password,create_time) VALUES(?,?,?,?)', [req.body.name, req.body.email, hashPassword, creatTime]);
+  await pool.execute('INSERT INTO users (name,email,password,create_time,photo) VALUES(?,?,?,?,?)', [req.body.name, req.body.email, hashPassword, creatTime, photo]);
   //回應前端
   res.json({ message: '註冊成功' });
 });
