@@ -512,7 +512,7 @@ async function getCalendar(req, res) {
 async function postAddCalendar(req, res) {
   const userId = req.session.user.id;
   const { start, end, title } = req.query;
-  let [result] = await pool.execute('INSERT INTO activity_calendar (user_id, start, end, title, valid) VALUES (?,?,?,?,?)', [userId, start, end, title, 1]);
+  let [result] = await pool.execute('INSERT INTO activity_calendar (user_id, start, end, title, valid,type) VALUES (?,?,?,?,?,?)', [userId, start, end, title, 1, 2]);
   console.log('addCalendar', result);
   res.json({ message: '新增成功' });
 }
@@ -520,7 +520,7 @@ async function postAddCalendar(req, res) {
 async function postActivityCalendar(req, res) {
   const userId = req.session.user.id;
   const { start, end, title } = req.query;
-  let [result] = await pool.execute('INSERT INTO activity_calendar (user_id, start, end, title, valid) VALUES (?,?,?,?,?)', [userId, start, end, title, 1]);
+  let [result] = await pool.execute('INSERT INTO activity_calendar (user_id, start, end, title, valid, type) VALUES (?,?,?,?,?,?)', [userId, start, end, title, 1, 2]);
   console.log('addCalendar', result);
   res.json({ message: '新增成功' });
 }
