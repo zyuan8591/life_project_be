@@ -52,6 +52,23 @@ async function getRecipeList(req, res) {
   });
 }
 
+async function getRecipeName(req, res) {
+  let result = await recipeModel.getRecipeName();
+  let data = result[0].map((d) => d.name);
+  res.json(data);
+}
+
+async function getRecipeMaterialName(req, res) {
+  let result = await recipeModel.getRecipeMaterialName();
+  console.log(result[0]);
+  let data = [];
+  result[0].forEach((d) => {
+    if (!data.includes(d.name)) data.push(d.name);
+  });
+  console.log(data);
+  res.json(data);
+}
+
 async function getRecipeDetail(req, res) {
   let id = req.params.id;
   let data = await recipeModel.getRecipeById(id);
@@ -244,4 +261,6 @@ module.exports = {
   updateRecipeStep,
   delRecipeComment,
   updateRecipeComment,
+  getRecipeName,
+  getRecipeMaterialName,
 };

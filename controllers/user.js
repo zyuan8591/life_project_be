@@ -102,6 +102,11 @@ async function postPoints(req, res) {
   res.json({ msg: '點數使用成功' });
 }
 
+async function getAllUser(req, res) {
+  let data = await userModel.getAllUser();
+  res.json(data);
+}
+
 module.exports = {
   getUser,
   putUser,
@@ -110,4 +115,5 @@ module.exports = {
   forgotpasswordasync,
   getPoints,
   postPoints,
+  getAllUser,
 };

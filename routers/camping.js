@@ -65,6 +65,12 @@ router.post('/campingJoin/:campingId', authMid.checkLogin, campingController.pos
 // Backstage
 router.get('/backstage', campingController.backstageAllData);
 
+// calendar
+router.get('/calendar', authMid.checkLogin, campingController.getCalendar);
+router.post('/addCalendar', authMid.checkLogin, campingController.postAddCalendar);
+router.post('/postCalendar', authMid.checkLogin, campingController.postActivityCalendar);
+router.delete('/delCalendar', authMid.checkLogin, campingController.delActivityCalendar);
+
 // post camping
 router.post('/campingAdd', uploader.array('photo1'), campingController.postCampingAdd);
 router.put('/campingUpdate', uploader.array('photo1'), campingController.putCampingUpdate);

@@ -10,17 +10,13 @@ async function getIndexProduct(req, res) {
 
 async function getProductList(req, res) {
   let { productName, productCate, page, perPage, brand, smallThan, biggerThan, sort } = req.query;
-  // console.log(req.query);
-  // console.log(productCate);
   // pagination
   page = page ? parseInt(page) : 1;
   perPage = perPage ? parseInt(perPage) : 5;
   let total = await productModel.getProductCount(productName, productCate, brand, smallThan, biggerThan, sort);
   let lastPage = Math.ceil(total / perPage);
   let offset = perPage * (page - 1);
-  // console.log('total', total, 'lastpage', lastPage, 'offset', offset, 'perPage', perPage);
   let data = await productModel.getProductList(productName, productCate, perPage, offset, brand, smallThan, biggerThan, sort);
-  console.log(total);
   res.json({
     pagination: {
       total,
@@ -76,14 +72,12 @@ async function addProductLike(req, res) {
   let user_id = req.session.user.id;
   productModel.addProductLike(user_id, id);
   res.json({ message: 'ok' });
-  console.log('addLike', id, user_id);
 }
 
 async function getProductLike(req, res) {
   let user_id = req.session.user.id;
   let data = await productModel.getProductLike(user_id);
   res.json(data);
-  console.log('getLike', user_id);
 }
 
 async function removeProductLike(req, res) {
@@ -91,7 +85,6 @@ async function removeProductLike(req, res) {
   let user_id = req.session.user.id;
   productModel.removeProductLike(user_id, id);
   res.json({ message: 'ok' });
-  console.log('remove', id, user_id);
 }
 
 async function getRandomProductRecommend(req, res) {
@@ -113,7 +106,6 @@ async function getRandomProductRecommend(req, res) {
     }
   }
   randomProduct = randomProduct.join(',');
-  console.log(randomProductNumber);
   let data = await productModel.getRandomProductRecommend(randomProductNumber);
   res.json(data);
 }
@@ -121,15 +113,12 @@ async function getRandomProductRecommend(req, res) {
 async function addProduct(req, res) {
   // let company_id = req.session.user.id;
   let { name, price, brand, inventory, cate, spec, color, intro } = req.body;
-  // console.log(req.files[1].originalname);
   let photo1 = req.files[0].originalname;
   let photo2 = req.files[1].originalname;
   let photo3 = req.files[2].originalname;
   let detail_img = req.files[3].originalname;
 
-  // console.log(photo1, photo2, photo3);
   let now = moment().format();
-  // console.log(req.body, now);
   productModel.addProduct(name, price, brand, inventory, cate, spec, color, intro, photo1, photo2, photo3, now, detail_img);
 
   res.json({ message: '新增成功' });
@@ -161,15 +150,11 @@ async function getUserProductLike(req, res) {
 }
 
 async function productUpdate(req, res) {
-  console.log('req.files', req.files);
-  console.log('req.body', req.body);
   let { id, detailId, name, price, inventory, cate, spec, color, intro } = req.body;
-  // console.log(req.files[1].originalname);
   // let photo1 = req.files[0].originalname;
   // let photo2 = req.files[1].originalname;
   // let photo3 = req.files[2].originalname;
   // let detail_img = req.files[3].originalname;
-  console.log('detailId', detailId);
   let { photoChange1, photoChange2, photoChange3, photoChange4 } = req.body;
   let change = [photoChange1, photoChange2, photoChange3, photoChange4]
     .map((d, i) => {
@@ -182,31 +167,34 @@ async function productUpdate(req, res) {
     img[change[i] - 1] = req.files[i].originalname;
   }
   productModel.productUpdate(id, detailId, name, price, inventory, cate, spec, color, intro, img);
-  console.log('img', img);
   res.json({ message: '修改成功' });
 }
 
 async function productDelete(req, res) {
   let { id } = req.query;
-  console.log(id);
   productModel.productDelete(id);
   res.json({ message: '刪除成功' });
 }
 
-async function productDiscount(req, res) {
-  let data = await productModel.productDiscount();
-  res.json(data);
-}
-
 async function addDiscount(req, res) {
-  // console.log('req.files', req.files);
-  console.log('req.body', req.body);
   let { name, discount, start_time, end_time, company } = req.body;
 
-  console.log(name, discount, start_time, end_time, company);
   productModel.addDiscount(name, discount, start_time, end_time, company);
 
   res.json({ message: '新增成功' });
+}
+
+async function getDiscount(req, res) {
+  // let company = req.session.user.company;
+  let { company } = req.query;
+  let data = await productModel.getDiscount(company);
+  res.json(data);
+}
+
+async function discountDelete(req, res) {
+  let { id } = req.query;
+  productModel.discountDelete(id);
+  res.json({ message: '刪除成功' });
 }
 
 module.exports = {
@@ -227,6 +215,7 @@ module.exports = {
   productUpdate,
   productDelete,
   getUserProductLike,
-  productDiscount,
   addDiscount,
+  getDiscount,
+  discountDelete,
 };

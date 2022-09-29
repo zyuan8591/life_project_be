@@ -60,7 +60,7 @@ async function picnicOffacialCollect(req, res) {
   const userId = req.session.user.id;
 
   let [result] = await pool.execute(
-    'SELECT activity_pincnic_official.id AS picnic_id , activity_pincnic_official.user_id AS creater_id, activity_pincnic_official.location, activity_pincnic_official.address, activity_pincnic_official.activity_date, activity_pincnic_official.activity_state, activity_pincnic_official.price, activity_pincnic_official.join_limit, activity_pincnic_official.picnic_title, activity_pincnic_official.place_name, activity_pincnic_official.intr, activity_pincnic_official.img1, activity_pincnic_official.start_date,activity_pincnic_official.end_date, activity_pincnic_official.valid, picnic_official_collect.user_id FROM activity_pincnic_official JOIN picnic_official_collect ON activity_pincnic_official.id = picnic_official_collect.picnic_id WHERE picnic_official_collect.user_id = ?',
+    'SELECT activity_pincnic_official.id AS picnic_id , activity_pincnic_official.user_id AS creater_id, activity_pincnic_official.location, activity_pincnic_official.address, activity_pincnic_official.activity_date, activity_picnic_state.activity_state, activity_pincnic_official.price, activity_pincnic_official.join_limit, activity_pincnic_official.picnic_title, activity_pincnic_official.place_name, activity_pincnic_official.intr, activity_pincnic_official.img1, activity_pincnic_official.start_date,activity_pincnic_official.end_date, activity_pincnic_official.valid, picnic_official_collect.user_id FROM activity_pincnic_official JOIN picnic_official_collect ON activity_pincnic_official.id = picnic_official_collect.picnic_id JOIN activity_picnic_state ON activity_pincnic_official.activity_state=activity_picnic_state.id WHERE picnic_official_collect.user_id = ?',
     [userId]
   );
   // console.log('測試', userId);
@@ -88,7 +88,7 @@ async function getMemberPicnicGroupData(req, res) {
   const page = req.query.page || 1;
 
   let [totalData] = await pool.execute(
-    `SELECT activity_picnic_private.*, activity_picnic_state.activity_state , activity_picnic_location.location FROM activity_picnic_private JOIN activity_picnic_state ON activity_picnic_private.activity_state = activity_picnic_state.id JOIN activity_picnic_location ON activity_picnic_private.location = activity_picnic_location.id WHERE create_user_id=? ANd valid = 1`,
+    `SELECT activity_picnic_private.* , activity_picnic_state.activity_state , activity_picnic_location.location FROM activity_picnic_private JOIN activity_picnic_state ON activity_picnic_private.activity_state = activity_picnic_state.id JOIN activity_picnic_location ON activity_picnic_private.location = activity_picnic_location.id WHERE create_user_id=? ANd valid = 1`,
     [userId]
   );
   // console.log(totalData);
@@ -98,7 +98,7 @@ async function getMemberPicnicGroupData(req, res) {
   const offset = perPage * (page - 1);
 
   let [result] = await pool.execute(
-    `SELECT activity_picnic_private.*,activity_picnic_private.id AS picnic_id , activity_picnic_state.activity_state , activity_picnic_location.location, IfNULL(c.people,0) AS currentJoin FROM activity_picnic_private JOIN activity_picnic_state ON activity_picnic_private.activity_state = activity_picnic_state.id JOIN activity_picnic_location ON activity_picnic_private.location = activity_picnic_location.id LEFT JOIN (SELECT picnic_id, COUNT(1) AS people FROM activity_picnic_private_join GROUP BY picnic_id) c ON activity_picnic_private.id = c.picnic_id WHERE create_user_id=? AND valid = 1 LIMIT ? OFFSET ?`,
+    `SELECT activity_picnic_private.*,activity_picnic_private.id AS picnic_id, activity_picnic_state.activity_state , activity_picnic_location.location, IfNULL(c.people,0) AS currentJoin FROM activity_picnic_private JOIN activity_picnic_state ON activity_picnic_private.activity_state = activity_picnic_state.id JOIN activity_picnic_location ON activity_picnic_private.location = activity_picnic_location.id LEFT JOIN (SELECT picnic_id, COUNT(1) AS people FROM activity_picnic_private_join GROUP BY picnic_id) c ON activity_picnic_private.id = c.picnic_id WHERE create_user_id=? AND valid = 1 LIMIT ? OFFSET ?`,
     [userId, perPage, offset]
   );
 
@@ -316,13 +316,14 @@ async function postOfficialJoin(req, res) {
 async function postOfficiaDeleteJoin(req, res) {
   await picnicModel.deleteJoinOfficial(req.session.user.id, req.params.officialId);
   let count = await picnicModel.getJoinCount(req.params.officialId);
+  console.log(count);
   let data = await picnicModel.getJoinId(req.params.officialId);
   // console.log('join_limit', data.join_limit);
   // 取消後未達成團人數
-  if (count.people < 5) {
+  if (count[0].people < 5) {
     // 成團 -> 開團 變開團中(未達最低人數)
     await pool.execute(`UPDATE activity_pincnic_official SET activity_state = 2 WHERE id = ${req.params.officialId}`);
-  } else if (count.people < data.join_limit) {
+  } else if (count[0].people < data.join_limit) {
     // 已截止 -> 已成團 變成團中(未達最高上限人數)
     await pool.execute(`UPDATE activity_pincnic_official SET activity_state = 3 WHERE id = ${req.params.officialId}`);
   }
