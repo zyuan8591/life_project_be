@@ -15,4 +15,9 @@ async function getAllCategory() {
   return data;
 }
 
-module.exports = { getAllNews, getAllCategory };
+async function postNews(cate, date, content) {
+  let result = await pool.execute(`INSERT INTO news (category, date, content) VALUES (?, ?, ?)`, [cate, date, content]);
+  return result;
+}
+
+module.exports = { getAllNews, getAllCategory, postNews };
