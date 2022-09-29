@@ -500,6 +500,40 @@ async function putCampingDel(req, res) {
   res.json({ message: '刪除成功' });
 }
 
+// calendar
+async function getCalendar(req, res) {
+  const userId = req.session.user.id;
+  // console.log(userId);
+  let [result] = await pool.execute(`SELECT c.* FROM activity_calendar c WHERE valid = 1 AND user_id = ?`, [userId]);
+  res.json({ result });
+}
+
+// calendar add
+async function postAddCalendar(req, res) {
+  const userId = req.session.user.id;
+  const { start, end, title } = req.query;
+  let [result] = await pool.execute('INSERT INTO activity_calendar (user_id, start, end, title, valid) VALUES (?,?,?,?,?)', [userId, start, end, title, 1]);
+  console.log('addCalendar', result);
+  res.json({ message: '新增成功' });
+}
+
+async function postActivityCalendar(req, res) {
+  const userId = req.session.user.id;
+  const { start, end, title } = req.query;
+  let [result] = await pool.execute('INSERT INTO activity_calendar (user_id, start, end, title, valid) VALUES (?,?,?,?,?)', [userId, start, end, title, 1]);
+  console.log('addCalendar', result);
+  res.json({ message: '新增成功' });
+}
+
+async function delActivityCalendar(req, res) {
+  const userId = req.session.user.id;
+  const { title } = req.query;
+  console.log(userId, title);
+  let [result] = await pool.execute('DELETE FROM activity_calendar WHERE user_id = ? AND title = ?', [userId, title]);
+  console.log('delCalendar', result);
+  res.json({ message: '刪除成功' });
+}
+
 module.exports = {
   getCampingList,
   getCampingDetail,
@@ -515,4 +549,8 @@ module.exports = {
   postCampingAdd,
   putCampingUpdate,
   putCampingDel,
+  getCalendar,
+  postAddCalendar,
+  postActivityCalendar,
+  delActivityCalendar,
 };
