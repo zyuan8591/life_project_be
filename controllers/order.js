@@ -25,7 +25,6 @@ async function getOrderStatusList(req, res) {
 
 async function getOrderList(req, res) {
   let { page, perPage, status } = req.query;
-
   // console.log(status);
 
   let user = req.session.user.id;
@@ -40,7 +39,6 @@ async function getOrderList(req, res) {
   let offset = perPage * (page - 1);
 
   let data = await orderModel.getOrders(parseInt(status), user, perPage, offset);
-
   // console.log(total, perPage, page, lastPage, data);
 
   res.json({
@@ -56,7 +54,6 @@ async function getOrderList(req, res) {
 
 async function getOrderDetail(req, res) {
   let id = req.params.id;
-  // let user = req.query.user;
   let user = req.session.user.id;
   // console.log(id, user);
 
@@ -75,7 +72,6 @@ async function getOrderDetail(req, res) {
       memo: v.memo,
     };
   });
-
   // console.log(orderInfo);
 
   let data = [{ ...orderInfo, product: [], picnic: [], camping: [] }];
@@ -297,9 +293,9 @@ async function postOrder(req, res) {
 async function postOrderInfo(req, res) {
   let user = req.session.user.id;
   // console.log(req.body);
-  // if (!orderId) return;
   let orderId = req.body.order_id;
-  console.log('orderId', orderId);
+  // console.log('orderId', orderId);
+
   //   // 用id抓訂單資料
   //   // getOrders -> time, order_total
   let orderData = await orderModel.getOrders('', user, '', '', req.body.order_id);
@@ -312,7 +308,7 @@ async function postOrderInfo(req, res) {
   });
   // console.log('orderinfo', orderInfo);
   let TotalAmount = orderInfo.totalPrice;
-  console.log('Totalamount', TotalAmount);
+  // console.log('Totalamount', TotalAmount);
 
   // get order items ->
   // products -> [{name: xxx, quantity: 1, price: 5}]
@@ -395,17 +391,17 @@ async function postOrderPay(req, respond) {
         orderId: orderId,
         packages: products,
         redirectUrls: {
-          confirmUrl: 'http://localhost:3000/orderstep/ordercheck',
+          confirmUrl: 'http://localhost:3001/api/1.0/orders/checkout',
           cancelUrl: 'https://myshop.com/cancelUrl',
         },
       },
     });
     console.log(res);
     // respond.set('Access-Control-Allow-Origin', '*');
-    respond.header('Access-Control-Expose-Headers', 'X-My-Custom-Header');
-    respond.header('Access-Control-Allow-Origin', 'http://localhost:3000');
-    respond.header('Access-Control-Allow-Methods', 'GET,POST,DELETE');
-    respond.header('Access-Control-Allow-Headers', 'Origin, X-Requested With,Authorization, Content-Type, Accept');
+    // respond.header('Access-Control-Expose-Headers', 'X-My-Custom-Header');
+    // respond.header('Access-Control-Allow-Origin', 'http://localhost:3000');
+    // respond.header('Access-Control-Allow-Methods', 'GET,POST,DELETE');
+    // respond.header('Access-Control-Allow-Headers', 'Origin, X-Requested With,Authorization, Content-Type, Accept');
     // respond.redirect(res.body.info.paymentUrl.web);
     respond.send(res.body.info.paymentUrl.web);
     // console.log(res.body.info.paymentUrl.web);
@@ -414,4 +410,11 @@ async function postOrderPay(req, respond) {
   }
   // console.log(respond);
 }
-module.exports = { getOrderDeliveryList, getOrderPaymentList, getOrderStatusList, getOrderList, getOrderDetail, postOrder, postOrderInfo, postOrderPay };
+
+async function getCheckout(req, res) {
+  const { transactionId, orderId } = req.query;
+  // console.log(transactionId, orderId);
+  req.session.order = orderId;
+  res.redirect('http://localhost:3000/orderstep/ordercheck');
+}
+module.exports = { getOrderDeliveryList, getOrderPaymentList, getOrderStatusList, getOrderList, getOrderDetail, postOrder, postOrderInfo, postOrderPay, getCheckout };
