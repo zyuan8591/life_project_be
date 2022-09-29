@@ -1,4 +1,5 @@
 const newsModel = require('../models/news');
+const moment = require('moment');
 
 async function getNewsList(req, res) {
   let cate = req.query.cate;
@@ -12,4 +13,11 @@ async function getNewsCategory(req, res) {
   res.json(data);
 }
 
-module.exports = { getNewsList, getNewsCategory };
+async function postNews(req, res) {
+  let { category, content } = req.body;
+  let time = moment().format('YYYY-MM-DD');
+  let result = await newsModel.postNews(category, time, content);
+  res.json(result);
+}
+
+module.exports = { getNewsList, getNewsCategory, postNews };

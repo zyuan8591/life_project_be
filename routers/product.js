@@ -65,7 +65,7 @@ router.get('/backstage', productController.getProductList);
 //GET /products/userlike
 router.get('/userlike', authMiddleware.checkLogin, productController.getUserProductLike);
 
-router.get('/discount', productController.productDiscount);
+router.get('/discount', productController.getDiscount);
 
 // get product for id
 // GET /products/1
@@ -92,5 +92,7 @@ router.post('/addDiscount', productController.addDiscount);
 router.put('/updateProduct', uploader.array('photo1'), productController.productUpdate);
 
 router.put('/deleteProduct', productController.productDelete);
+
+router.delete('/deleteDiscount', productController.discountDelete);
 
 module.exports = router;

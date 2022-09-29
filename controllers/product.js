@@ -193,11 +193,6 @@ async function productDelete(req, res) {
   res.json({ message: '刪除成功' });
 }
 
-async function productDiscount(req, res) {
-  let data = await productModel.productDiscount();
-  res.json(data);
-}
-
 async function addDiscount(req, res) {
   // console.log('req.files', req.files);
   console.log('req.body', req.body);
@@ -207,6 +202,21 @@ async function addDiscount(req, res) {
   productModel.addDiscount(name, discount, start_time, end_time, company);
 
   res.json({ message: '新增成功' });
+}
+
+async function getDiscount(req, res) {
+  // let company = req.session.user.company;
+  let { company } = req.query;
+  console.log(company);
+  let data = await productModel.getDiscount(company);
+  res.json(data);
+}
+
+async function discountDelete(req, res) {
+  let { id } = req.query;
+  console.log(id);
+  productModel.discountDelete(id);
+  res.json({ message: '刪除成功' });
 }
 
 module.exports = {
@@ -227,6 +237,7 @@ module.exports = {
   productUpdate,
   productDelete,
   getUserProductLike,
-  productDiscount,
   addDiscount,
+  getDiscount,
+  discountDelete,
 };
