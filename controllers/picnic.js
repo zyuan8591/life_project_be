@@ -316,13 +316,14 @@ async function postOfficialJoin(req, res) {
 async function postOfficiaDeleteJoin(req, res) {
   await picnicModel.deleteJoinOfficial(req.session.user.id, req.params.officialId);
   let count = await picnicModel.getJoinCount(req.params.officialId);
+  console.log(count);
   let data = await picnicModel.getJoinId(req.params.officialId);
   // console.log('join_limit', data.join_limit);
   // 取消後未達成團人數
-  if (count.people < 5) {
+  if (count[0].people < 5) {
     // 成團 -> 開團 變開團中(未達最低人數)
     await pool.execute(`UPDATE activity_pincnic_official SET activity_state = 2 WHERE id = ${req.params.officialId}`);
-  } else if (count.people < data.join_limit) {
+  } else if (count[0].people < data.join_limit) {
     // 已截止 -> 已成團 變成團中(未達最高上限人數)
     await pool.execute(`UPDATE activity_pincnic_official SET activity_state = 3 WHERE id = ${req.params.officialId}`);
   }
