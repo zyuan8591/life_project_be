@@ -127,6 +127,7 @@ async function postOrder(req, res) {
   // console.log(req.body.point);
   // insert into orders
   let { delivery, payment, productTotal, picnicTotal, campingTotal, name, phone, email, memo, cityName, areaName, address, point } = req.body;
+  // console.log(point);
 
   let fullAddress = cityName + areaName + address;
   let cartTotal = productTotal + picnicTotal + campingTotal;
@@ -344,73 +345,73 @@ async function postOrderInfo(req, res) {
 async function postOrderPay(req, respond) {
   // console.log(req.body);
   const { orders } = req.body;
-  console.log(req.body.orders);
+  // console.log(req.body.orders);
   let orderId = orders.orderId;
   let products = orders.packages;
   let amount = orders.amount;
-  // console.log(req.body);
-  // console.log(orders);
-  try {
-    const linePayBody = {
-      ...orders,
-      redirectUrls: {
-        confirmUrl: 'http://localhost:3000/',
-        cancelUrl: 'http://localhost:3000/notfound',
-      },
-    };
-    const uri = '/payments/request';
-    const nonce = orderId;
-    const string = `${LINEPAY_CHANNEL_SECRET_KEY}/${LINEPAY_VERSION}${uri}${JSON.stringify(linePayBody)}${nonce}`;
-    const signature = Base64.stringify(HmacSHA256(string, LINEPAY_CHANNEL_SECRET_KEY));
-    // console.log(LINEPAY_CHANNEL_ID);
-    const headers = {
-      'X-LINE-ChannelId': LINEPAY_CHANNEL_ID,
-      'Content-Type': 'application/json',
-      'X-LINE-Authorization-Nonce': nonce,
-      'X-LINE-Authorization': signature,
-    };
-
-    const url = `${LINEPAY_SITE}/${LINEPAY_VERSION}${uri}`;
-
-    const linePayRes = await axios.post(url, linePayBody, { headers });
-    console.log(linePayRes);
-
-    console.log(linePayBody);
-  } catch (error) {
-    console.error(error);
-    respond.end();
-  }
-
-  // const linePayClient = createLinePayClient({
-  //   channelId: LINEPAY_CHANNEL_ID,
-  //   channelSecretKey: LINEPAY_CHANNEL_SECRET_KEY,
-  //   env: 'development', // env can be 'development' or 'production'
-  // });
+  // // console.log(req.body);
+  // // console.log(orders);
   // try {
-  //   const res = await linePayClient.request.send({
-  //     body: {
-  //       amount: amount,
-  //       currency: 'TWD',
-  //       orderId: orderId,
-  //       packages: products,
-  //       redirectUrls: {
-  //         confirmUrl: 'http://localhost:3000/orderstep/ordercheck',
-  //         cancelUrl: 'https://myshop.com/cancelUrl',
-  //       },
+  //   const linePayBody = {
+  //     ...orders,
+  //     redirectUrls: {
+  //       confirmUrl: 'http://localhost:3000/',
+  //       cancelUrl: 'http://localhost:3000/notfound',
   //     },
-  //   });
-  //   console.log(res);
-  //   // respond.set('Access-Control-Allow-Origin', '*');
-  //   respond.header('Access-Control-Expose-Headers', 'X-My-Custom-Header');
-  //   respond.header('Access-Control-Allow-Origin', 'http://localhost:3000');
-  //   respond.header('Access-Control-Allow-Methods', 'GET,POST,DELETE');
-  //   respond.header('Access-Control-Allow-Headers', 'Origin, X-Requested With,Authorization, Content-Type, Accept');
-  //   // respond.redirect(res.body.info.paymentUrl.web);
-  //   respond.redirect(res.body.info.paymentUrl.web);
-  //   // console.log(res.body.info.paymentUrl.web);
-  // } catch (e) {
-  //   console.log('error', e);
+  //   };
+  //   const uri = '/payments/request';
+  //   const nonce = orderId;
+  //   const string = `${LINEPAY_CHANNEL_SECRET_KEY}/${LINEPAY_VERSION}${uri}${JSON.stringify(linePayBody)}${nonce}`;
+  //   const signature = Base64.stringify(HmacSHA256(string, LINEPAY_CHANNEL_SECRET_KEY));
+  //   // console.log(LINEPAY_CHANNEL_ID);
+  //   const headers = {
+  //     'X-LINE-ChannelId': LINEPAY_CHANNEL_ID,
+  //     'Content-Type': 'application/json',
+  //     'X-LINE-Authorization-Nonce': nonce,
+  //     'X-LINE-Authorization': signature,
+  //   };
+
+  //   const url = `${LINEPAY_SITE}/${LINEPAY_VERSION}${uri}`;
+
+  //   const linePayRes = await axios.post(url, linePayBody, { headers });
+  //   console.log(linePayRes);
+
+  //   console.log(linePayBody);
+  // } catch (error) {
+  //   console.error(error);
+  //   respond.end();
   // }
+
+  const linePayClient = createLinePayClient({
+    channelId: LINEPAY_CHANNEL_ID,
+    channelSecretKey: LINEPAY_CHANNEL_SECRET_KEY,
+    env: 'development', // env can be 'development' or 'production'
+  });
+  try {
+    const res = await linePayClient.request.send({
+      body: {
+        amount: amount,
+        currency: 'TWD',
+        orderId: orderId,
+        packages: products,
+        redirectUrls: {
+          confirmUrl: 'http://localhost:3000/orderstep/ordercheck',
+          cancelUrl: 'https://myshop.com/cancelUrl',
+        },
+      },
+    });
+    console.log(res);
+    // respond.set('Access-Control-Allow-Origin', '*');
+    respond.header('Access-Control-Expose-Headers', 'X-My-Custom-Header');
+    respond.header('Access-Control-Allow-Origin', 'http://localhost:3000');
+    respond.header('Access-Control-Allow-Methods', 'GET,POST,DELETE');
+    respond.header('Access-Control-Allow-Headers', 'Origin, X-Requested With,Authorization, Content-Type, Accept');
+    // respond.redirect(res.body.info.paymentUrl.web);
+    respond.send(res.body.info.paymentUrl.web);
+    // console.log(res.body.info.paymentUrl.web);
+  } catch (e) {
+    console.log('error', e);
+  }
   // console.log(respond);
 }
 module.exports = { getOrderDeliveryList, getOrderPaymentList, getOrderStatusList, getOrderList, getOrderDetail, postOrder, postOrderInfo, postOrderPay };
