@@ -1,71 +1,133 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../utils/db');
-// const moment = require('moment');
-// ===========================================================================
-// get recipes
-// GET /api/1.0/recipes?sort=1&user=1&name='咖啡'&page=2&perPage=7
-router.get('/', async function (req, res) {
-  let { sort, user, name = '', page, perPage } = req.query;
+const recipeController = require('../controllers/recipe');
+const authMiddleware = require('../middlewares/auth');
 
-  // Sort
-  let sortSql = null;
-  switch (sort) {
-    case '1':
-      sortSql = 'ORDER BY id ASC';
-      break;
-    case '2':
-      sortSql = 'ORDER BY id DESC';
-      break;
-    default:
-      sortSql = '';
-      break;
-  }
-
-  // TODO: search material
-  // Search
-  let userSearch = user ? `AND recipe.user_id = ${user}` : '';
-  // let nameSearch = name ? `AND  recipe.name LIKE '%${name}%'` : '';
-
-  // pagination
-  page = page ? parseInt(page) : 1;
-  perPage = perPage ? parseInt(perPage) : 5;
-  let [total] = await pool.execute('SELECT COUNT(*) AS total FROM recipe WHERE valid = 1');
-  total = total[0].total;
-  let lastPage = Math.ceil(total / perPage);
-  let offset = perPage * (page - 1);
-
-  // TODO: product_category
-  // TODO: recipe_category
-
-  let [data] = await pool.query(
-    `SELECT recipe.*, recipe_category.name AS recipe_category_name FROM recipe JOIN recipe_category ON recipe.category = recipe_category.id WHERE valid = 1 ${userSearch} AND recipe.name LIKE ? ${sortSql} LIMIT ? OFFSET ?`,
-    [`%${name}%`, perPage, offset]
-  );
-  res.json(data);
+// nodejs 內建的物件
+const path = require('path');
+// Content-Type: multipart/form-data;
+// 就要用 multer 相關的套件來處理
+const multer = require('multer');
+const storage = multer.diskStorage({
+  // 儲存資料夾
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, '..', 'public', 'recipe', 'recipe_img'));
+  },
+  // 圖片名稱
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
+  },
 });
 
-// ===========================================================================
-// GET specify recipe
-router.get('/:id', async function (req, res) {
-  // TODO: JOIN category
-  let id = req.params.id;
-  let [data] = await pool.query('SELECT * FROM recipe WHERE id = ?', [id]);
-  res.json(data);
+const uploader = multer({
+  storage: storage,
+  // 過濾圖片的種類
+  fileFilter: function (req, file, cb) {
+    if (file.mimetype !== 'image/jpeg' && file.mimetype !== 'image/jpg' && file.mimetype !== 'image/png' && file.mimetype !== 'image/webp') {
+      cb(new Error('上傳的檔案型態不接受'), false);
+    } else {
+      cb(null, true);
+    }
+  },
+  // 過濾檔案的大小
+  limits: {
+    // 1k = 1024 => 1000k = 1000 * 1024
+    fileSize: 1000 * 1024,
+  },
 });
-// ===========================================================================
-// GET specify recipe material
-router.get('/:id/material', async function (req, res) {
-  let id = req.params.id;
-  let [data] = await pool.query('SELECT * FROM recipe_material WHERE id = ?', [id]);
-  res.json(data);
+
+const stepStorage = multer.diskStorage({
+  // 儲存資料夾
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, '..', 'public', 'recipe', 'recipe_step'));
+  },
+  // 圖片名稱
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
+  },
 });
-// ===========================================================================
-// GET specify recipe step
-router.get('/:id/step', async function (req, res) {
-  let id = req.params.id;
-  let [data] = await pool.query('SELECT * FROM recipe_step WHERE recipe_id = ?', [id]);
-  res.json(data);
+
+const stepUploader = multer({
+  storage: stepStorage,
+  // 過濾圖片的種類
+  fileFilter: function (req, file, cb) {
+    if (file.mimetype !== 'image/jpeg' && file.mimetype !== 'image/jpg' && file.mimetype !== 'image/png' && file.mimetype !== 'image/webp') {
+      cb(new Error('上傳的檔案型態不接受'), false);
+    } else {
+      cb(null, true);
+    }
+  },
+  // 過濾檔案的大小
+  limits: {
+    // 1k = 1024 => 1000k = 1000 * 1024
+    fileSize: 1000 * 1024,
+  },
 });
+
+// GET recipe /api/1.0/recipes?sort=1&user=1&name='咖啡'&page=2&perPage=7
+router.get('/', recipeController.getRecipeList);
+
+// GET /api/1.0/recipes/category
+router.get('/category', recipeController.getRecipeCate);
+
+// GET /api/1.0/recipes/material
+router.get('/material', recipeController.getMaterialList);
+
+// GET /api/1.0/recipes/like
+router.get('/like', authMiddleware.checkLogin, recipeController.getUserRecipeLike);
+
+// GET /api/1.0/recipes/name
+router.get('/name', recipeController.getRecipeName);
+
+// GET /api/1.0/recipes/materialName
+router.get('/materialName', recipeController.getRecipeMaterialName);
+
+// GET detail /api/1.0/recipes/5
+router.get('/:id', recipeController.getRecipeDetail);
+
+// GET material /api/1.0/recipes/5/material
+router.get('/:id/material', recipeController.getMaterialById);
+
+// GET step /api/1.0/recipes/5/step
+router.get('/:id/step', recipeController.getStepById);
+
+// GET comment /api/1.0/recipes/5/comments
+router.get('/:id/comment', recipeController.getRecipeComment);
+
+// POST comment /api/1.0/recipes/5/comment
+router.post('/:id/comment', authMiddleware.checkLogin, recipeController.postRecipeComment);
+
+// POST comment /api/1.0/recipes/5/like
+router.post('/:id/like', authMiddleware.checkLogin, recipeController.postRecipeLike);
+
+// POST recipe /api/1.0/recipes
+router.post('/', authMiddleware.checkLogin, uploader.single('image'), recipeController.postRecipe);
+
+// POST material /api/1.0/recipes/5/material
+router.post('/:id/material', authMiddleware.checkLogin, recipeController.postRecipeMaterial);
+
+// POST step /api/1.0/recipes/5/step
+router.post('/:id/step', authMiddleware.checkLogin, stepUploader.array('img'), recipeController.postRecipeStep);
+
+// DELETE like /api/1.0/recipes/5/like
+router.delete('/:id/like', authMiddleware.checkLogin, recipeController.delUserRecipeLike);
+
+// DELETE valid /api/1.0/recipes/5/material
+router.delete('/:id/material', authMiddleware.checkLogin, recipeController.delRciepMaterial);
+
+// PUT valid /api/1.0/recipes/5?valid=0
+router.put('/:id', uploader.single('image'), authMiddleware.checkLogin, recipeController.updateRecipe);
+
+// PUT valid /api/1.0/recipes/5?valid=0
+// router.put('/:id/material', authMiddleware.checkLogin, recipeController.updateRecipe);
+
+// PUT step /api/1.0/recipe/5/step
+router.put('/:id/step', authMiddleware.checkLogin, stepUploader.array('img'), recipeController.updateRecipeStep);
+
+// DEL comment /api/1.0/recipes/comment/5
+router.delete('/comment/:id', authMiddleware.checkLogin, recipeController.delRecipeComment);
+
+// PUT comment /api/1.0/recipes/comment/5
+router.put('/comment/:id', authMiddleware.checkLogin, recipeController.updateRecipeComment);
 
 module.exports = router;
