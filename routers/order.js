@@ -11,20 +11,25 @@ router.get('/delivery', orderController.getOrderDeliveryList);
 // GET order_payment
 router.get('/payment', orderController.getOrderPaymentList);
 
+// GET order_status
 router.get('/status', orderController.getOrderStatusList);
 
+// post ordreinfo /api/1.0/orders/orderinfo
+router.post('/orderinfo', orderController.postOrderInfo);
+
+// POST LinePay
 router.post('/pay', orderController.postOrderPay);
+
+// GET LinePay Return
+router.get('/checkout', orderController.getCheckout);
 
 // POST order /api/1.0/orders/order
 router.post('/order', orderController.postOrder);
 
-// get ordreinfo /api/1.0/orders/orderinfo
-router.post('/orderinfo', orderController.postOrderInfo);
+// GET detail /api/1.0/orders/5
+router.get('/:id', orderController.getOrderDetail);
 
 // POST ecpay /api/1.0/orders/pay
 // router.post('/ecpay', orderController.postEcpay);
-
-// GET detail /api/1.0/orders/5
-router.get('/:id', orderController.getOrderDetail);
 
 module.exports = router;
