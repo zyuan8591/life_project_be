@@ -296,7 +296,7 @@ async function postOfficialJoin(req, res) {
 
   await picnicModel.addJoinOfficial(req.session.user.id, req.params.officialId);
   let [count] = await picnicModel.getJoinCount(req.params.officialId); //此活動已參加人數
-  // console.log('count people', count.people);
+  // console.log('join count people', count.people);
   // 成團標準(最低5人)、成團上限
   let data = await picnicModel.getJoinId(req.params.officialId);
   // console.log('join_limit', data.join_limit);
@@ -315,14 +315,15 @@ async function postOfficialJoin(req, res) {
 // delete join
 async function postOfficiaDeleteJoin(req, res) {
   await picnicModel.deleteJoinOfficial(req.session.user.id, req.params.officialId);
-  let count = await picnicModel.getJoinCount(req.params.officialId);
+  let count = await picnicModel.getJoinCount(req.params.officialId); //目前參加人數
   let data = await picnicModel.getJoinId(req.params.officialId);
+  // console.log('del count people', count);
   // console.log('join_limit', data.join_limit);
   // 取消後未達成團人數
-  if (count.people < 5) {
+  if (count[0].people < 5) {
     // 成團 -> 開團 變開團中(未達最低人數)
     await pool.execute(`UPDATE activity_pincnic_official SET activity_state = 2 WHERE id = ${req.params.officialId}`);
-  } else if (count.people < data.join_limit) {
+  } else if (count[0].people < data.join_limit) {
     // 已截止 -> 已成團 變成團中(未達最高上限人數)
     await pool.execute(`UPDATE activity_pincnic_official SET activity_state = 3 WHERE id = ${req.params.officialId}`);
   }
@@ -474,10 +475,10 @@ async function postDeleteJoin(req, res) {
   let [count] = await picnicModel.getPrivateJoinCount(req.params.groupId); //此活動已參加人數
   // console.log('count people', count.people);
   let data = await picnicModel.getJoinById(req.params.groupId);
-  if (count.people < 5) {
+  if (count[0].people < 5) {
     // 成團 -> 開團 變開團中(未達最低人數)
     await pool.execute(`UPDATE activity_picnic_private SET activity_state = 2 WHERE id = ${req.params.groupId}`);
-  } else if (count.people < data.join_limit) {
+  } else if (count[0].people < data.join_limit) {
     // 已截止 -> 已成團 變成團中(未達最高上限人數)
     await pool.execute(`UPDATE activity_picnic_private SET activity_state = 3 WHERE id = ${req.params.groupId}`);
   }
