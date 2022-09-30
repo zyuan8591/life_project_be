@@ -70,6 +70,7 @@ async function getOrderDetail(req, res) {
       address: v.recipient_address,
       email: v.recipient_email,
       memo: v.memo,
+      discount: v.point_discount,
     };
   });
   // console.log(orderInfo);
