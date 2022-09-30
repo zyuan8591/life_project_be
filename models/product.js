@@ -5,7 +5,6 @@ async function getProductCount(productName = '', productCate, brand, smallThan, 
   let productBrandSql = '';
   let biggerThanSql = '';
   let smallThanSql = '';
-  console.log('count', brand);
   parseInt(productCate) ? (productCateSql = `AND category = ${productCate}`) : '';
   parseInt(brand) ? (productBrandSql = `AND company_id in (${brand})`) : '';
   parseInt(biggerThan) ? (biggerThanSql = ` AND price >= ${biggerThan}`) : '';
@@ -14,7 +13,6 @@ async function getProductCount(productName = '', productCate, brand, smallThan, 
     `SELECT COUNT(*) AS total FROM product WHERE valid = 1 ${productCateSql} ${productBrandSql} ${biggerThanSql} ${smallThanSql} AND product.name LIKE ?`,
     [`%${productName}%`]
   );
-  // console.log(total[0][0].total);
   return total[0][0].total;
 }
 
@@ -28,6 +26,10 @@ async function getProductList(productName = '', productCate, perPage, offset, br
     sortSql = 'ORDER BY created_time DESC';
   } else if (sort == 3) {
     sortSql = 'ORDER BY company_id ASC';
+  } else if (sort == 4) {
+    sortSql = 'ORDER BY price ASC';
+  } else if (sort == 5) {
+    sortSql = 'ORDER BY price DESC';
   } else {
     sortSql = '';
   }
@@ -36,43 +38,40 @@ async function getProductList(productName = '', productCate, perPage, offset, br
   let productBrandSql = '';
   let biggerThanSql = '';
   let smallThanSql = '';
-  console.log('productCate', productCate);
-  console.log('productName', productName);
-  console.log('biggerThan', biggerThan);
-  console.log('smallThan', smallThan);
-  // console.log('brand', brand);
   parseInt(productCate) ? (productCateSql = `AND category = ${productCate}`) : '';
   parseInt(brand) ? (productBrandSql = `AND company_id IN (${brand})`) : '';
   parseInt(biggerThan) ? (biggerThanSql = ` AND price >= ${biggerThan}`) : '';
   parseInt(smallThan) ? (smallThanSql = ` AND price <= ${smallThan}`) : '';
   let data = await pool.query(
-    `SELECT product.*, product_category.name AS product_category_name, company.name AS brand FROM product JOIN product_category ON product.category = product_category.id JOIN company ON product.company_id = company.id WHERE valid = 1 ${productCateSql} ${productBrandSql} ${biggerThanSql} ${smallThanSql} AND product.name LIKE ? ${sortSql} LIMIT ? OFFSET ?`,
+    `SELECT a.*, b.name AS product_category_name, c.name AS brand, d.discount AS discount , d.discount_name AS discount_name, d.start_time AS start_time, d.end_time AS end_time, d.company AS company
+    FROM product a
+    JOIN product_category b ON a.category = b.id
+    JOIN company c ON a.company_id = c.id
+    LEFT JOIN product_discount d ON a.company_id = d.company
+    WHERE valid = 1 ${productCateSql} ${productBrandSql} ${biggerThanSql} ${smallThanSql} AND a.name LIKE ? 
+    GROUP BY a.id
+    ${sortSql} 
+    LIMIT ? OFFSET ?`,
     [`%${productName}%`, perPage, offset]
   );
-  console.log('productCateSql', productCateSql);
-  // console.log('length', data);
   return data[0];
 }
 
 async function getProductCategory() {
   let data = await pool.query('SELECT * FROM product_category');
-  // console.log(data[0]);
   return data[0];
 }
 
 async function getProductById(id) {
   let [data] = await pool.query(
-    `SELECT product.*, product_category.name AS product_category_name, company.name AS brand FROM product JOIN product_category ON product.category = product_category.id JOIN company ON product.company_id = company.id WHERE product.id in (?)`,
+    `SELECT product.*, product_category.name AS product_category_name, company.name AS brand, d.discount AS discount, d.discount_name AS discount_name, d.start_time AS start_time, d.end_time AS end_time FROM product JOIN product_category ON product.category = product_category.id JOIN company ON product.company_id = company.id LEFT JOIN product_discount d ON product.company_id = d.company WHERE product.id in (?)`,
     [id]
   );
-  // console.log(data);
   return data;
 }
 
 async function getBrandList(brand) {
-  // console.log(brand);
   let [data] = await pool.query(`SELECT * FROM company WHERE name LIKE ?`, [`%${brand}%`]);
-  console.log('pageTotal', data.length);
   return data;
 }
 
@@ -91,12 +90,10 @@ async function getProductComment(id) {
 
 async function writeProductComment(user_id, writeComment, id, time, star) {
   let result = await pool.execute(`INSERT INTO product_comment (user_id, comment, product_id, create_time, star) VALUES (?, ?, ?, ?, ?)`, [user_id, writeComment, id, time, star]);
-  console.log(result);
 }
 
 async function addProductLike(user_id, id) {
   let result = await pool.execute(`INSERT INTO product_like (user_id, product_id) VALUES (?, ?)`, [user_id, id]);
-  console.log(result);
 }
 
 async function getProductLike(user_id) {
@@ -104,13 +101,11 @@ async function getProductLike(user_id) {
     `SELECT product_like.*, product.name, product.img, product.color,product.price FROM product_like JOIN product ON product_like.product_id = product.id WHERE user_id = ? `,
     [user_id]
   );
-  console.log('getLike', user_id);
   return data;
 }
 
 async function removeProductLike(user_id, id) {
   let result = await pool.query(`DELETE FROM product_like WHERE user_id = ? AND product_id = ?`, [user_id, id]);
-  console.log('remove', result);
 }
 
 async function getRandomProductNumber(category) {
@@ -133,8 +128,6 @@ async function addProduct(name, price, brand, inventory, cate, spec, color, intr
   let [{ insertId }] = result;
 
   let detailResult = await pool.execute(`INSERT INTO product_detail (product_id, img) VALUES (?, ?)`, [insertId, detail_img]);
-  console.log('addProduct', result);
-  console.log('detail_img', detailResult);
 }
 
 async function getProductRank() {
@@ -157,12 +150,29 @@ async function productUpdate(id, detailId, name, price, inventory, cate, spec, c
     id,
   ]);
   let detailResult = await pool.execute(`UPDATE product_detail SET img = ? WHERE id = ?`, [img[3], detailId]);
-  console.log('update', result, 'detailResult', detailResult);
 }
 
 async function productDelete(id) {
   let result = await pool.execute(`UPDATE product SET valid = 0 WHERE id = ?`, [id]);
-  console.log(result);
+}
+
+async function addDiscount(name, discount, start_time, end_time, company) {
+  let result = await pool.execute(`INSERT INTO product_discount (discount_name, discount, start_time, end_time, company) VALUES (?, ?, ?, ?, ?)`, [
+    name,
+    discount,
+    start_time,
+    end_time,
+    company,
+  ]);
+}
+
+async function getDiscount(company) {
+  let [data] = await pool.query(`SELECT * FROM product_discount WHERE company = ?`, [company]);
+  return data;
+}
+
+async function discountDelete(id) {
+  let result = await pool.execute(`DELETE FROM product_discount WHERE id = ?`, [id]);
 }
 
 module.exports = {
@@ -183,4 +193,7 @@ module.exports = {
   getProductRank,
   productUpdate,
   productDelete,
+  addDiscount,
+  getDiscount,
+  discountDelete,
 };

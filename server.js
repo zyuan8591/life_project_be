@@ -23,13 +23,18 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('socket: user disconnected');
   });
-  socket.on('name', (name) => {
-    console.log('socket: name from name', name);
+  // User send Msg to Admin
+  socket.on('lifeUser', (message) => {
+    let { id, msg, time } = message;
+    console.log('Message', `id:${id} msg:${msg}`);
+    socket.broadcast.emit('life', { id, msg, time });
   });
-  // socket 「聽」MFEE27
-  socket.on('life', (msg) => {
-    console.log('socket: msg from MFEE27', msg);
-    socket.broadcast.emit('chat', msg);
+  // socket on Admin send to user
+  socket.on('life', (message) => {
+    let { id, msg, time } = message;
+    if (id !== 0) {
+      socket.broadcast.emit(`user${id}`, { id, msg, time });
+    }
   });
 });
 

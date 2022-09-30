@@ -4,6 +4,7 @@ const pool = require('../utils/db');
 const argon2 = require('argon2');
 const date = require('date-and-time');
 const { body, validationResult } = require('express-validator');
+const userModel = require('../models/user');
 
 const reqistetRules = [
   body('email').isEmail().withMessage('請輸入正確的Email格式'),
@@ -33,8 +34,18 @@ router.post('/', reqistetRules, async (req, res) => {
   //取得註冊日期
   const now = new Date();
   let creatTime = date.format(now, 'YYYY/MM/DD');
+
+  let photo = '/userAvatar/alex.png';
   //寫進資料庫
-  await pool.execute('INSERT INTO users (name,email,password,create_time) VALUES(?,?,?,?)', [req.body.name, req.body.email, hashPassword, creatTime]);
+  await pool.execute('INSERT INTO users (name,email,password,create_time,photo) VALUES(?,?,?,?,?)', [req.body.name, req.body.email, hashPassword, creatTime, photo]);
+  let [member] = await pool.execute('SELECT * FROM users WHERE email= ?', [req.body.email]);
+  console.log('member', member);
+  let user_id = member[0].id;
+  let point = 100;
+  let event = '新會員註冊';
+  await userModel.postpoints(user_id, point, event, creatTime);
+  //同步user點數
+  await userModel.updatapoints(user_id);
   //回應前端
   res.json({ message: '註冊成功' });
 });

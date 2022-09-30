@@ -24,7 +24,7 @@ async function getJoinCount(picnic_id) {
     [picnic_id]
   );
   if (result.length < 1) {
-    result = { people: 0, picnic_id: picnic_id };
+    result = [{ people: 0, picnic_id: picnic_id }];
   }
   return result;
 }

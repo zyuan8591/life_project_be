@@ -44,4 +44,10 @@ async function updatapoints(user_id) {
   total = total[0].point;
   await pool.execute('UPDATE users SET points=? WHERE id=?', [total, user_id]);
 }
-module.exports = { getuser, putuser, putpassword, inspectionEmail, getpoints, postpoints, updatapoints };
+
+async function getAllUser() {
+  let [result] = await pool.execute('SELECT id, name, photo FROM users');
+  return result;
+}
+
+module.exports = { getuser, putuser, putpassword, inspectionEmail, getpoints, postpoints, updatapoints, getAllUser };
