@@ -115,7 +115,6 @@ async function getMemberPicnicGroupData(req, res) {
 async function picnicGroupJoin(req, res) {
   const userId = req.session.user.id;
 
-  //TODO:活動狀態&&主辦人 JOIN
   let [result] = await pool.execute(
     'SELECT activity_picnic_private.id AS picnic_id , users.name AS creater_id, activity_picnic_private.location, activity_picnic_private.address, activity_picnic_private.activity_date, activity_picnic_state.activity_state, activity_picnic_private.price, activity_picnic_private.join_limit, activity_picnic_private.picnic_title, activity_picnic_private.place_name, activity_picnic_private.intr, activity_picnic_private.img1, activity_picnic_private.start_date,activity_picnic_private.end_date, activity_picnic_private.valid, activity_picnic_private_join.join_user_id FROM activity_picnic_private JOIN activity_picnic_private_join ON activity_picnic_private.id = activity_picnic_private_join.picnic_id JOIN activity_picnic_state ON activity_picnic_private.activity_state=activity_picnic_state.id JOIN users ON activity_picnic_private.create_user_id=users.id WHERE activity_picnic_private_join.join_user_id = ?',
     [userId]
@@ -196,7 +195,7 @@ async function getPicnicList(req, res) {
   let filterBtn = filterState ? `AND activity_picnic_state.id = ${filterState}` : '';
   let filterPrice = minPrice || maxPrice ? `AND (price BETWEEN ${minPrice} AND ${maxPrice})` : '';
   let filterJoinPeople = minJoinPeople || maxJoinPeople ? `AND (join_limit BETWEEN ${minJoinPeople} AND ${maxJoinPeople})` : '';
-  let filterDate = maxDate || minDate ? `AND (start_date >= '${minDate}' AND end_date <= '${maxDate}')` : '';
+  let filterDate = maxDate || minDate ? `AND (activity_date >= '${minDate}' AND activity_date <= '${maxDate}')` : '';
   //   console.log(filterDate);
 
   let [totalData] = await pool.execute(
@@ -373,7 +372,7 @@ async function getPrivateList(req, res) {
 
   let filterBtn = filterState ? `AND activity_picnic_state.id = ${filterState}` : '';
   let filterJoinPeople = minJoinPeople || maxJoinPeople ? `AND (join_limit BETWEEN ${minJoinPeople} AND ${maxJoinPeople})` : '';
-  let filterDate = maxDate || minDate ? `AND (start_date >= '${minDate}' AND end_date <= '${maxDate}')` : '';
+  let filterDate = maxDate || minDate ? `AND (activity_date >= '${minDate}' AND activity_date <= '${maxDate}')` : '';
   // console.log(minJoinPeople, maxJoinPeople);
 
   let [totalData] = await pool.execute(
@@ -473,12 +472,12 @@ async function postPicnicJoin(req, res) {
 async function postDeleteJoin(req, res) {
   await picnicModel.deleteJoinPicnic(req.session.user.id, req.params.groupId);
   let [count] = await picnicModel.getPrivateJoinCount(req.params.groupId); //此活動已參加人數
-  // console.log('count people', count.people);
+  console.log('count people', count);
   let data = await picnicModel.getJoinById(req.params.groupId);
-  if (count[0].people < 5) {
+  if (count.people < 5) {
     // 成團 -> 開團 變開團中(未達最低人數)
     await pool.execute(`UPDATE activity_picnic_private SET activity_state = 2 WHERE id = ${req.params.groupId}`);
-  } else if (count[0].people < data.join_limit) {
+  } else if (count.people < data.join_limit) {
     // 已截止 -> 已成團 變成團中(未達最高上限人數)
     await pool.execute(`UPDATE activity_picnic_private SET activity_state = 3 WHERE id = ${req.params.groupId}`);
   }
