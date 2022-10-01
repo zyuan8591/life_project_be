@@ -57,6 +57,11 @@ async function forgotemail(req, res) {
   res.json(saveUser);
 }
 
+//getForgotMember
+async function getForgotMember(req, res) {
+  res.json(req.session.member);
+}
+
 //忘記密碼-重置密碼
 async function forgotpasswordasync(req, res) {
   let hashPassword = await argon2.hash(req.body.newPassword, 10);
@@ -116,4 +121,5 @@ module.exports = {
   getPoints,
   postPoints,
   getAllUser,
+  getForgotMember,
 };

@@ -49,6 +49,9 @@ router.get('/', authMid.checkLogin, userController.getUser);
 //GET userDate
 router.get('/all', userController.getAllUser);
 
+//GET forgot member
+router.get('/forgotmember', userController.getForgotMember);
+
 //PUT usetDate
 router.put('/', authMid.checkLogin, uploader.single('photo'), userController.putUser);
 
