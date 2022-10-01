@@ -504,7 +504,7 @@ async function putCampingDel(req, res) {
 async function getCalendar(req, res) {
   const userId = req.session.user.id;
   // console.log(userId);
-  let [result] = await pool.execute(`SELECT c.* FROM activity_calendar c WHERE valid = 1 AND user_id = ? ORDER BY c.start ASC`, [userId]);
+  let [result] = await pool.execute(`SELECT c.* FROM activity_calendar c WHERE valid = 1 AND user_id = ? ORDER BY c.start DESC`, [userId]);
   res.json({ result });
 }
 
