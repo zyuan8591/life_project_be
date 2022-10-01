@@ -54,7 +54,7 @@ async function getOrders(status, user, perPage, offset, id) {
     sqlParams.push(id);
   }
   if (perPage && JSON.stringify(offset)) {
-    sqlPages += ' LIMIT ? OFFSET ?';
+    sqlPages += ' ORDER BY id DESC LIMIT ? OFFSET ?';
     sqlParams.push(perPage, offset);
   }
   // console.log('sqlPages', sqlPages);

@@ -25,7 +25,6 @@ async function getOrderStatusList(req, res) {
 
 async function getOrderList(req, res) {
   let { page, perPage, status } = req.query;
-
   // console.log(status);
 
   let user = req.session.user.id;
@@ -40,7 +39,6 @@ async function getOrderList(req, res) {
   let offset = perPage * (page - 1);
 
   let data = await orderModel.getOrders(parseInt(status), user, perPage, offset);
-
   // console.log(total, perPage, page, lastPage, data);
 
   res.json({
@@ -56,7 +54,6 @@ async function getOrderList(req, res) {
 
 async function getOrderDetail(req, res) {
   let id = req.params.id;
-  // let user = req.query.user;
   let user = req.session.user.id;
   // console.log(id, user);
 
@@ -73,9 +70,9 @@ async function getOrderDetail(req, res) {
       address: v.recipient_address,
       email: v.recipient_email,
       memo: v.memo,
+      discount: v.point_discount,
     };
   });
-
   // console.log(orderInfo);
 
   let data = [{ ...orderInfo, product: [], picnic: [], camping: [] }];
@@ -126,14 +123,13 @@ async function postOrder(req, res) {
   // console.log('body:', req.body);
   // console.log(req.body.point);
   // insert into orders
-  let { delivery, payment, productTotal, picnicTotal, campingTotal, name, phone, email, memo, cityName, areaName, address } = req.body;
+  let { delivery, payment, productTotal, picnicTotal, campingTotal, name, phone, email, memo, cityName, areaName, address, point } = req.body;
+  // console.log(point);
 
   let fullAddress = cityName + areaName + address;
-  let cartTotal = productTotal + picnicTotal + campingTotal;
+  let cartTotal = productTotal + picnicTotal + campingTotal + point;
   let create_time = moment().format('YYYY-MM-DD h:mm:ss');
   let status = 3;
-  // TODO: point
-  let point_discount = 10;
 
   // console.log(req.session);
   if (req.session.user === null) return;
@@ -141,7 +137,7 @@ async function postOrder(req, res) {
   let user_id = req.session.user.id;
   // console.log('id', user_id);
 
-  let orderData = [user_id, status, delivery, payment, cartTotal, create_time, name, phone, fullAddress, email, memo, point_discount];
+  let orderData = [user_id, status, delivery, payment, cartTotal, create_time, name, phone, fullAddress, email, memo, point];
 
   let insertOrders = await orderModel.postOrderById(orderData);
   // console.log('insertOrders', insertOrders);
@@ -149,6 +145,7 @@ async function postOrder(req, res) {
   let order_id = insertOrders[0].insertId;
   // console.log('orderId', order_id);
 
+  // insert into detail
   let { productItems, picnicItems, campingItems } = req.body;
   // console.log(prouductItems, picnicItems, campingItems);
   productItems.sort(function (a, b) {
@@ -180,11 +177,6 @@ async function postOrder(req, res) {
 
   let orderDetailResult = await orderModel.postOrderDetailById(cartItem);
   // console.log('orderDetailResult', orderDetailResult);
-
-  // if (req.body.payment === 3) {
-  //   axios;
-  // }
-  // console.log(address);
 
   // product
   let productId = productCartItem.map((v) => {
@@ -302,9 +294,9 @@ async function postOrder(req, res) {
 async function postOrderInfo(req, res) {
   let user = req.session.user.id;
   // console.log(req.body);
-  // if (!orderId) return;
   let orderId = req.body.order_id;
-  console.log('orderId', orderId);
+  // console.log('orderId', orderId);
+
   //   // 用id抓訂單資料
   //   // getOrders -> time, order_total
   let orderData = await orderModel.getOrders('', user, '', '', req.body.order_id);
@@ -317,7 +309,7 @@ async function postOrderInfo(req, res) {
   });
   // console.log('orderinfo', orderInfo);
   let TotalAmount = orderInfo.totalPrice;
-  console.log('Totalamount', TotalAmount);
+  // console.log('Totalamount', TotalAmount);
 
   // get order items ->
   // products -> [{name: xxx, quantity: 1, price: 5}]
@@ -343,23 +335,23 @@ async function postOrderInfo(req, res) {
   // console.log(products);
 
   const orders = { orderId: orderId, currency: 'TWD', amount: TotalAmount, packages: [{ id: `${user}`, amount: TotalAmount, products: products }] };
-  console.log(orders);
+  // console.log(orders);
   res.json({ orders });
 }
 
 async function postOrderPay(req, respond) {
   // console.log(req.body);
   const { orders } = req.body;
-  console.log(req.body.orders.orderId);
+  // console.log(req.body.orders);
   let orderId = orders.orderId;
   let products = orders.packages;
   let amount = orders.amount;
-  console.log(req.body);
-  // console.log(orders);
+  // // console.log(req.body);
+  // // console.log(orders);
   // try {
   //   const linePayBody = {
   //     ...orders,
-  //     redirectURLs: {
+  //     redirectUrls: {
   //       confirmUrl: 'http://localhost:3000/',
   //       cancelUrl: 'http://localhost:3000/notfound',
   //     },
@@ -381,10 +373,10 @@ async function postOrderPay(req, respond) {
   //   const linePayRes = await axios.post(url, linePayBody, { headers });
   //   console.log(linePayRes);
 
-  //   // console.log(linePayBody);
+  //   console.log(linePayBody);
   // } catch (error) {
-  //   // console.error(error);
-  //   res.end();
+  //   console.error(error);
+  //   respond.end();
   // }
 
   const linePayClient = createLinePayClient({
@@ -400,18 +392,30 @@ async function postOrderPay(req, respond) {
         orderId: orderId,
         packages: products,
         redirectUrls: {
-          confirmUrl: 'http://localhost:3000/orderstep/ordercheck',
+          confirmUrl: 'http://localhost:3001/api/1.0/orders/checkout',
           cancelUrl: 'https://myshop.com/cancelUrl',
         },
       },
     });
-    // res.set('Access-Control-Allow-Origin', '*');
     console.log(res);
-    respond.set('Access-Control-Allow-Origin', '*');
-    respond.redirect(res.body.info.paymentUrl.web);
+    // respond.set('Access-Control-Allow-Origin', '*');
+    // respond.header('Access-Control-Expose-Headers', 'X-My-Custom-Header');
+    // respond.header('Access-Control-Allow-Origin', 'http://localhost:3000');
+    // respond.header('Access-Control-Allow-Methods', 'GET,POST,DELETE');
+    // respond.header('Access-Control-Allow-Headers', 'Origin, X-Requested With,Authorization, Content-Type, Accept');
+    // respond.redirect(res.body.info.paymentUrl.web);
+    respond.send(res.body.info.paymentUrl.web);
     // console.log(res.body.info.paymentUrl.web);
   } catch (e) {
     console.log('error', e);
   }
+  // console.log(respond);
 }
-module.exports = { getOrderDeliveryList, getOrderPaymentList, getOrderStatusList, getOrderList, getOrderDetail, postOrder, postOrderInfo, postOrderPay };
+
+async function getCheckout(req, res) {
+  const { transactionId, orderId } = req.query;
+  // console.log(transactionId, orderId);
+  req.session.order = orderId;
+  res.redirect('http://localhost:3000/orderstep/ordercheck');
+}
+module.exports = { getOrderDeliveryList, getOrderPaymentList, getOrderStatusList, getOrderList, getOrderDetail, postOrder, postOrderInfo, postOrderPay, getCheckout };
