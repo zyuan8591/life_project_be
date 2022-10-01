@@ -127,7 +127,7 @@ async function postOrder(req, res) {
   // console.log(point);
 
   let fullAddress = cityName + areaName + address;
-  let cartTotal = productTotal + picnicTotal + campingTotal;
+  let cartTotal = productTotal + picnicTotal + campingTotal + point;
   let create_time = moment().format('YYYY-MM-DD h:mm:ss');
   let status = 3;
 

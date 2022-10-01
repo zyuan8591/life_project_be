@@ -125,7 +125,10 @@ async function getRecipeCateList() {
 }
 
 async function getRecipeCommentById(id) {
-  let [data] = await pool.execute('SELECT recipe_comment.*, users.photo, users.name FROM recipe_comment JOIN users ON recipe_comment.user_id = users.id WHERE recipe_id = ?', [id]);
+  let [data] = await pool.execute(
+    'SELECT recipe_comment.*, users.photo, users.name FROM recipe_comment JOIN users ON recipe_comment.user_id = users.id WHERE recipe_id = ? ORDER BY create_time DESC',
+    [id]
+  );
   return data;
 }
 

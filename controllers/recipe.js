@@ -110,7 +110,8 @@ async function postRecipeComment(req, res) {
   let id = req.params.id;
   let user_id = req.session.user.id;
   let { comment } = req.body;
-  let time = moment().format('YYYY-MM-DD h:mm:ss');
+  let time = moment().format('YYYY-MM-DD HH:mm:ss');
+  console.log(time);
   recipeModel.postCommentById(user_id, comment, id, time);
   res.json({ message: 'ok' });
 }
