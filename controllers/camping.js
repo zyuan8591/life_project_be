@@ -504,7 +504,7 @@ async function putCampingDel(req, res) {
 async function getCalendar(req, res) {
   const userId = req.session.user.id;
   // console.log(userId);
-  let [result] = await pool.execute(`SELECT c.* FROM activity_calendar c WHERE valid = 1 AND user_id = ?`, [userId]);
+  let [result] = await pool.execute(`SELECT c.* FROM activity_calendar c WHERE valid = 1 AND user_id = ? ORDER BY c.start ASC`, [userId]);
   res.json({ result });
 }
 
@@ -512,7 +512,7 @@ async function getCalendar(req, res) {
 async function postAddCalendar(req, res) {
   const userId = req.session.user.id;
   const { start, end, title } = req.query;
-  let [result] = await pool.execute('INSERT INTO activity_calendar (user_id, start, end, title, valid,type) VALUES (?,?,?,?,?,?)', [userId, start, end, title, 1, 2]);
+  let [result] = await pool.execute('INSERT INTO activity_calendar (user_id, start, end, title, valid,type) VALUES (?,?,?,?,?,?)', [userId, start, end, title, 1, 1]);
   console.log('addCalendar', result);
   res.json({ message: '新增成功' });
 }
