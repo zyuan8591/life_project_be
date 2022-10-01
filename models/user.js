@@ -30,7 +30,7 @@ async function putpassword(hashPassword, user_id) {
 }
 //取得會員點數
 async function getpoints(user_id) {
-  let [data] = await pool.execute('SELECT * FROM user_points WHERE user_id = ?', [user_id]);
+  let [data] = await pool.execute('SELECT * FROM user_points WHERE user_id = ? ORDER BY id DESC', [user_id]);
   return data;
 }
 

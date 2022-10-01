@@ -77,7 +77,7 @@ async function getPoints(req, res) {
   const offset = perPage * (page - 1);
   let data = await userModel.getpoints(user_id);
   let alldata = await userModel.getpoints(user_id);
-  console.log('points', data);
+  // console.log('points', data);
   data = data.slice(offset, offset + perPage);
   res.json({
     pagination: {
